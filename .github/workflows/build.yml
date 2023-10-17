@@ -1,0 +1,25 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Update agda
+      run: |
+        sudo sed -i 's/jammy/lunar/' /etc/apt/sources.list
+        sudo apt-get -y update
+    - name: Install packages
+      run: sudo apt-get -y install agda
+    - name: Download cubical library
+      run: |
+        git clone https://github.com/agda/cubical.git -b v0.4
+        mkdir ~/.agda
+        echo "cubical" > ~/.agda/defaults
+        echo "`pwd`/cubical/cubical.agda-lib" > ~/.agda/libraries
+    - name: Check proof
+      run: |
+        agda --version
+        make
