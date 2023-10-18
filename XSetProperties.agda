@@ -15,6 +15,7 @@ open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Homotopy.Loopspace
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.FreeGroup renaming (_·_ to _·f_)
+open import Cubical.Data.Sigma
 
 open import XSet
 open import GSet
@@ -37,10 +38,12 @@ U {G = G} {X = X} {ι = ι} (A , strA) = A , xsetstr (action ϕ∘ι  isSetA)
   ϕ∘ι x a = ϕ (ι x) a
 
 postulate
-  theorem1 : {G : Group ℓ} {A B : GSet ℓ G} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((g : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a)))
-  theorem2 : {X : hSet ℓ} {A B : XSet ℓ X} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a)))
-  theorem3 : {G : Group ℓ} {A B : GSet ℓ G} {p : ⟨ A ⟩ ≡ ⟨ B ⟩} {g : ⟨ G ⟩} → isProp ((a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a))
-  theorem4 : {A : Type ℓ} {P : A → Type ℓ} → ((x : A) → ∥ P x ∥₁) → ∥ ((y : A) → P y) ∥₁
+  splitGSet≡ : {G : Group ℓ} {A B : GSet ℓ G} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((g : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a)))
+  splitXSet≡ : {X : hSet ℓ} {A B : XSet ℓ X} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a)))
+
+  theorem1 : {G : Group ℓ} {A B : GSet ℓ G} {p : ⟨ A ⟩ ≡ ⟨ B ⟩} {g : ⟨ G ⟩} → isProp ((a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a))
+  theorem2 : {X : hSet ℓ} {A B : XSet ℓ X} {p : ⟨ A ⟩ ≡ ⟨ B ⟩} → isProp ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a))
+  theorem3 : {G : Group ℓ} {A B : GSet ℓ G} {p : ⟨ A ⟩ ≡ ⟨ B ⟩} → isProp ((g : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a))
 
 module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   open GroupStr (str G)
@@ -48,27 +51,34 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   open generators {G = G} {X = X} {ι = ι}
   module _ {generates : ι-generates} where
     thm : Iso (PG ≡ PG) (U PG ≡ U PG)
-    Iso.fun thm eq = invEq (theorem2 {X = X}) (p , λ x a → comm (ι x) a)
+    Iso.fun thm eq = invEq (splitXSet≡ {X = X}) (p , λ x a → comm (ι x) a)
       where
-      t = equivFun theorem1 eq
+      t = equivFun splitGSet≡ eq
       p = fst t
       comm = snd t
-    Iso.inv thm eq = invEq theorem1 (p , comm-star)
+    Iso.inv thm eq = invEq splitGSet≡ (p , comm-star)
       where
-      t = equivFun theorem2 eq
+      t = equivFun splitXSet≡ eq
       p : ⟨ G ⟩ ≡ ⟨ G ⟩
       p = fst t
       comm = snd t
       comm-star : (g : ⟨ G ⟩) → (a : ⟨ G ⟩) → (transport p (g · a)) ≡ (g · (transport p a))
-      comm-star g = Cubical.HITs.PropositionalTruncation.rec (theorem3 {p = p} {g = g}) lem (generates g)
+      comm-star g = Cubical.HITs.PropositionalTruncation.rec (theorem1 {G = G} {A = PG} {B = PG} {p = p} {g = g}) lem (generates g)
         where
         lem : (Σ (FreeGroup ⟨ X ⟩) λ x → (ι-star-hom .fst x ≡ g)) → ((a : ⟨ G ⟩) → transport p (g · a) ≡ g · (transport p a))
         lem (x , prf) a =
-          transport p (g · a)                       ≡⟨ {!!} ⟩ -- prf
-          transport p ((ι-star-hom .fst x)  · a)     ≡⟨ {!!} ⟩
-          (ι-star-hom .fst x) · (transport p a)      ≡⟨ {!!} ⟩  -- prf
+          transport p (g · a)                       ≡⟨ cong (λ y → transport p (y · a)) (sym prf) ⟩
+          transport p ((ι-star-hom .fst x)  · a)     ≡⟨ {!!} ⟩ -- gonna have to show that this function of 'x' is a morphism from FreeGroupGroup X to G and use uniqueness
+          (ι-star-hom .fst x) · (transport p a)      ≡⟨ cong (λ y → y · (transport p a)) prf ⟩
           g · (transport p a) ∎
-
-
-    Iso.rightInv thm = {!!}
-    Iso.leftInv thm = {!!}
+    Iso.rightInv thm eq = sym (
+      eq ≡⟨ {!!} ⟩
+      (invEq splitXSet≡) (equivFun splitXSet≡ eq) ≡⟨ {!!} ⟩
+      (invEq splitXSet≡) (p , com) ≡⟨ {!!} ⟩
+      (Iso.fun thm) (Iso.inv thm eq) ∎)
+        where
+        t = equivFun splitXSet≡ eq
+        p = fst t
+        com = snd t
+    -- Iso.rightInv thm eq = invEq (congEquiv splitXSet≡) (ΣPathP ( {!!} , (theorem2 _ _)))
+    Iso.leftInv thm eq = {!!}
