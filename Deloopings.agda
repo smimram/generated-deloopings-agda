@@ -29,14 +29,14 @@ private
     ℓ : Level
 
 module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
-  open generators
+  open generators {G = G} {X = X} {ι = ι}
   open principal-torsor
   module _ {gen : ι-generates} where
   BG : Pointed _
   BG = Comp (GSet ℓ G , PG)
 
   PX : XSet ℓ X
-  PX = U PG
+  PX = U {G = G} {ι = ι} PG
 
   BG' : Pointed _
   BG' = Comp (XSet ℓ X , PX)
