@@ -2,8 +2,8 @@
 
   This file contains:
 
-  - Definition of BAut, the connected component of a pointed space (A, a0)
-  - Ω(BAut(A, a0)) = Ω(A,a0)
+  - Definition of Comp the connected component of a pointed space (A, a0)
+  - Ω(Comp(A, a0)) = Ω(A,a0)
 
 -}
 
@@ -23,13 +23,13 @@ private
     ℓ : Level
 
 -- Definition of the connected component of a pointed space
-BAut : Pointed ℓ → Pointed ℓ
-BAut X = ( Σ ⟨ X ⟩ (λ x  → ∥ (pt X) ≡ x ∥₁), (pt X , ∣ refl ∣₁) )
+Comp : Pointed ℓ → Pointed ℓ
+Comp X = ( Σ ⟨ X ⟩ (λ x  → ∥ (pt X) ≡ x ∥₁), (pt X , ∣ refl ∣₁) )
 
-loopBAutIsLoop : {A : Pointed ℓ} → Ω (BAut A) ≃∙ Ω A
-loopBAutIsLoop {ℓ} {A} = isoToEquiv e , refl
+loopCompIsLoop : {A : Pointed ℓ} → Ω (Comp A) ≃∙ Ω A
+loopCompIsLoop {ℓ} {A} = isoToEquiv e , refl
   where
-  e : Iso (fst (Ω (BAut A))) (fst (Ω A))
+  e : Iso (fst (Ω (Comp A))) (fst (Ω A))
 
   -- On projete ((a0, _) ≡ (a0,_)) sur (a0 ≡ a0)
   Iso.fun e p = cong fst p

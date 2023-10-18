@@ -35,6 +35,7 @@ equalActions {G} {X} ϕ ψ refl =  isoFunInjective  ActionIsoΣ ϕ ψ
 equalGSetStructures : {G : Group ℓ} {X : Type ℓ} (A B : GSetStr G X) → A .GSetStr._*_ ≡ B .GSetStr._*_ → A ≡ B
 equalGSetStructures A B p = isoFunInjective GSetStrIsoΣ A B (equalActions _ _ p)
 
+
 -- Use of this should be replaced by isPropIsGSetHom
 equalIsGSetHom : {G : Group ℓ} {X Y : GSet ℓ G} {f : ⟨ X ⟩ → ⟨ Y ⟩} (hom hom' : IsGSetHom (str X) f (str Y)) → hom .IsGSetHom.pres* ≡ hom' .IsGSetHom.pres* → hom ≡ hom'
 equalIsGSetHom {G = G} {X = X} {Y = Y} {f = f} hom hom' p = isoFunInjective  IsGSetHomIsoΣ hom hom' p
@@ -82,6 +83,10 @@ decomposedEqualGSet {G = G} {A = A} = Σ (Σ (Type _) λ B → ⟨ A ⟩ ≃ B) 
                                            Σ ((x : B) → (str G).GroupStr.1g * x ≡ x) (λ unit →
                                              Σ ((g1 g2 : ⟨ G ⟩) (x : B) → g1 * (g2 * x) ≡ ((str G).GroupStr._·_ g1 g2) * x) (λ comp →
                                                IsGSetHom (str A) (equivFun e) (gsetstr (action _*_ SB unit comp))))))  }
+
+-- theorem : {G : Group ℓ} {A B : GSet ℓ G} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((g : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a)))
+-- theorem {G = G} {A = A} {B = B} = compEquiv (invEquiv ΣPath≃PathΣ) {!!}
+
 
 GSetPath : {G : Group ℓ} {X Y : GSet ℓ G} → (X ≡ Y) ≃ (GSetEquiv X Y)
 GSetPath {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetEquiv {X = A}) contr X Y
