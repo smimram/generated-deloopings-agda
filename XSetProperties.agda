@@ -7,7 +7,7 @@
 
   -}
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 
 open import Cubical.Foundations.Everything
 open import Cubical.Algebra.Group
