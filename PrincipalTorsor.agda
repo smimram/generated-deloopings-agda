@@ -23,6 +23,7 @@ private
   variable
     ℓ : Level
 
+
 module principal-torsor {G : Group ℓ} where
   open GroupStr (str G)
   left-action : Action {ℓ} G ⟨ G ⟩
@@ -33,5 +34,6 @@ module principal-torsor {G : Group ℓ} where
     ·Composition = ·Assoc
     }
 
-  PG : GSet ℓ G
+  PG : GSet _ G
   PG = ⟨ G ⟩ , gsetstr left-action
+
