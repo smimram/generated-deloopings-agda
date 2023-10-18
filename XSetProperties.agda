@@ -7,7 +7,7 @@
 
   -}
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --allow-unsolved-metas --cubical #-}
 
 open import Cubical.Foundations.Everything
 open import Cubical.Algebra.Group
@@ -20,6 +20,7 @@ open import XSet
 open import GSet
 open import GSetProperties
 open import Generators
+open import PrincipalTorsor
 
 
 private
@@ -43,18 +44,7 @@ postulate
 
 module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   open GroupStr (str G)
-  left-action : Action {ℓ} G ⟨ G ⟩
-  left-action = record {
-    _*_ = _·_ ;
-    is-set = is-set ;
-    ·Unit = ·IdL ;
-    ·Composition = ·Assoc
-    }
-
-  -- On appelle le GSet correspondant "torseur principal de G" PG : GSet l G
-  PG : GSet ℓ G
-  PG = ⟨ G ⟩ , gsetstr left-action
-
+  open principal-torsor {G = G}
   open generators {G = G} {X = X} {ι = ι}
   module _ {generates : ι-generates} where
     thm : Iso (PG ≡ PG) (U PG ≡ U PG)
@@ -69,7 +59,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       p : ⟨ G ⟩ ≡ ⟨ G ⟩
       p = fst t
       comm = snd t
-      comm-star : ((g : ⟨ G ⟩) → (a : ⟨ G ⟩) → transport p (g · a) ≡ g · (transport p a))
+      comm-star : (g : ⟨ G ⟩) → (a : ⟨ G ⟩) → (transport p (g · a)) ≡ (g · (transport p a))
       comm-star g = Cubical.HITs.PropositionalTruncation.rec (theorem3 {p = p} {g = g}) lem (generates g)
         where
         lem : (Σ (FreeGroup ⟨ X ⟩) λ x → (ι-star-hom .fst x ≡ g)) → ((a : ⟨ G ⟩) → transport p (g · a) ≡ g · (transport p a))
