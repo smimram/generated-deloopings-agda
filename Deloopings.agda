@@ -7,7 +7,7 @@
 
   -}
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 
 open import Cubical.Foundations.Everything
 open import Cubical.Algebra.Group
@@ -43,5 +43,5 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   BG' : Pointed (ℓ-suc ℓ)
   BG' = Comp (XSet ℓ X , PX)
 
-  PG=PGisoG : (πGr 0 BG) ≡ G
-  PG=PGisoG = ?
+  PG=PGisoG : GroupIso (πGr 0 BG) G
+  PG=PGisoG = {!!}
