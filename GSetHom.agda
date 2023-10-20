@@ -7,7 +7,7 @@
 
 -}
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 
 open import Cubical.Foundations.Everything
 open import Cubical.Algebra.Group
@@ -41,13 +41,27 @@ module _ {G : Group ℓ} {X : Type ℓ} {Y : Type ℓ} {M : GSetStr {ℓ} G X} {
   makeIsGSetHom : IsGSetHom M f N
   makeIsGSetHom .IsGSetHom.pres* = pres
 
-GSetHom : {G : Group ℓ} (X Y : GSet G) → Type ℓ
-GSetHom X Y = Σ[ f ∈ (⟨ X ⟩ → ⟨ Y ⟩) ] IsGSetHom (str X) f (str Y)
+module _ {G : Group ℓ} where
 
-IsGSetEquiv : {G : Group ℓ} {X Y : Type ℓ}
-  (M : GSetStr G X) (e : X ≃ Y) (N : GSetStr G Y) → Type ℓ
-IsGSetEquiv M e N = IsGSetHom M (e .fst) N
+  GSetHom : (X Y : GSet G) → Type ℓ
+  GSetHom X Y = Σ[ f ∈ (⟨ X ⟩ → ⟨ Y ⟩) ] IsGSetHom (str X) f (str Y)
 
-GSetEquiv : {G : Group ℓ} (X Y : GSet G) → Type ℓ
-GSetEquiv X Y = Σ[ e ∈ (⟨ X ⟩ ≃ ⟨ Y ⟩) ] IsGSetEquiv (str X) e (str Y)
+  IsGSetEquiv : {X Y : Type ℓ} (M : GSetStr G X) (e : X ≃ Y) (N : GSetStr G Y) → Type ℓ
+  IsGSetEquiv M e N = IsGSetHom M (e .fst) N
 
+  GSetEquiv : (X Y : GSet G) → Type ℓ
+  GSetEquiv X Y = Σ[ e ∈ (⟨ X ⟩ ≃ ⟨ Y ⟩) ] IsGSetEquiv (str X) e (str Y)
+
+  makeIsGSetEquiv = makeIsGSetHom
+
+  GSetIdEquiv : (X : GSet G) → GSetEquiv X X
+  GSetIdEquiv X = idEquiv ⟨ X ⟩ , makeIsGSetEquiv λ x y → refl
+
+  idToGSetEquiv : {X Y : GSet G} → X ≡ Y → GSetEquiv X Y
+  idToGSetEquiv {X = X} = J (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
+
+  GSetUnivalence : {X Y : GSet G} → isEquiv (idToGSetEquiv {X = X} {Y = Y})
+  GSetUnivalence = {!!}
+
+  GSetUA : {X Y : GSet G} → GSetEquiv X Y → X ≡ Y
+  GSetUA {X} {Y} = invEq (_ , GSetUnivalence {X = X} {Y = Y})

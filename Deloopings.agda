@@ -22,6 +22,7 @@ open import Cubical.Homotopy.Group.Base
 
 open import XSet
 open import GSet
+open import GSetHom
 open import GSetProperties
 open import Generators
 open import XSetProperties
@@ -72,14 +73,20 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   PGloops = e , {!!}
     where
     open Iso
-    open GroupStr (snd G)
-    m : ⟨ G ⟩ → PG ≡ PG
-    m x = {!ua ?!}
+    open GroupStr (str G)
+    m : ⟨ G ⟩ → PG {G = G} ≡ PG
+    m x = GSetUA (isoToEquiv e , makeIsGSetEquiv {G = G} λ y z → sym (·Assoc _ _ _))
+      where
+      e : Iso ⟨ PG {G = G} ⟩ ⟨ PG {G = G} ⟩
+      fun e y = y · x
+      Iso.inv e y = y · GroupStr.inv (str G) x
+      rightInv e y = sym (·Assoc _ _ _) ∙ cong (λ x → y · x) (·InvL x) ∙ ·IdR y
+      leftInv e y = sym (·Assoc _ _ _) ∙ cong (λ x → y · x) (·InvR x) ∙ ·IdR y
     e : Iso (PG ≡ PG) ⟨ G ⟩
     fun e p = transport (cong fst p) 1g
-    Iso.inv e x = {!!}
-    rightInv e = {!!}
-    leftInv e = {!!}
+    Iso.inv e x = m x
+    rightInv e x = {!refl!}
+    leftInv e p = {!!}
 
   torsorDeloops : GroupIso (π₁ BG isGroupoidBG) G
   torsorDeloops = {!!}
