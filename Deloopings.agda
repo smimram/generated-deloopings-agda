@@ -11,6 +11,7 @@
 
 open import Cubical.Foundations.Everything
 open import Cubical.Foundations.GroupoidLaws as GL
+open import Cubical.Foundations.Univalence
 open import Cubical.Algebra.Semigroup
 open import Cubical.Algebra.Monoid
 open import Cubical.Algebra.Group
@@ -74,19 +75,23 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
     where
     open Iso
     open GroupStr (str G)
-    m : ⟨ G ⟩ → PG {G = G} ≡ PG
-    m x = GSetUA (isoToEquiv e , makeIsGSetEquiv {G = G} λ y z → sym (·Assoc _ _ _))
+    m≃ : ⟨ G ⟩ → GSetEquiv (PG {G = G}) PG
+    m≃ x = (isoToEquiv e , makeIsGSetEquiv {G = G} λ y z → sym (·Assoc _ _ _))
       where
       e : Iso ⟨ PG {G = G} ⟩ ⟨ PG {G = G} ⟩
       fun e y = y · x
       Iso.inv e y = y · GroupStr.inv (str G) x
       rightInv e y = sym (·Assoc _ _ _) ∙ cong (λ x → y · x) (·InvL x) ∙ ·IdR y
       leftInv e y = sym (·Assoc _ _ _) ∙ cong (λ x → y · x) (·InvR x) ∙ ·IdR y
+    m : ⟨ G ⟩ → PG {G = G} ≡ PG
+    m x = GSetUA (m≃ x)
+    mTr : (x y : ⟨ G ⟩) → subst fst (m x) y ≡ y · x
+    mTr x y = {!!} ∙ uaβ (fst (m≃ x)) y
     e : Iso (PG ≡ PG) ⟨ G ⟩
     fun e p = transport (cong fst p) 1g
     Iso.inv e x = m x
-    rightInv e x = {!refl!}
-    leftInv e p = {!!}
+    rightInv e x = mTr x 1g ∙ ·IdL x
+    leftInv e p = cong m {!!} ∙ {!!}
 
   torsorDeloops : GroupIso (π₁ BG isGroupoidBG) G
   torsorDeloops = {!!}
