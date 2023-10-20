@@ -34,8 +34,8 @@ private
     ℓ : Level
 
 --- fundamental group of a groupoid
-π₁ : {A : Pointed ℓ} → isGroupoid ⟨ A ⟩ → Group ℓ
-π₁ {A = A} gpd = (pt A ≡ pt A) , grp
+π₁ : (A : Pointed ℓ) → isGroupoid ⟨ A ⟩ → Group ℓ
+π₁ A gpd = (pt A ≡ pt A) , grp
   where
   open GroupStr
   open IsSemigroup
@@ -60,7 +60,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   BG = Comp (GSet G , PG)
 
   isGroupoidBG : isGroupoid ⟨ BG ⟩
-  isGroupoidBG f g = subst isSet (sym (ua (PathComp f g))) {!str X!}
+  isGroupoidBG f g = subst isSet (sym (ua (PathComp f g))) (isGroupoidGSet G (fst f) (fst g))
 
   PX : XSet X
   PX = U {G = G} {ι = ι} PG
@@ -68,5 +68,18 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   BG' : Pointed (ℓ-suc ℓ)
   BG' = Comp (XSet X , PX)
 
-  PG=PGisoG : GroupIso (π₁ {A = BG} {!!}) G
-  PG=PGisoG = {!!}
+  PGloops : GroupIso (π₁ (GSet G , PG) (isGroupoidGSet G)) G
+  PGloops = e , {!!}
+    where
+    open Iso
+    open GroupStr (snd G)
+    m : ⟨ G ⟩ → PG ≡ PG
+    m x = {!ua ?!}
+    e : Iso (PG ≡ PG) ⟨ G ⟩
+    fun e p = transport (cong fst p) 1g
+    Iso.inv e x = {!!}
+    rightInv e = {!!}
+    leftInv e = {!!}
+
+  torsorDeloops : GroupIso (π₁ BG isGroupoidBG) G
+  torsorDeloops = {!!}
