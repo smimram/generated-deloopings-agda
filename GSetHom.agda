@@ -41,13 +41,13 @@ module _ {G : Group ℓ} {X : Type ℓ} {Y : Type ℓ} {M : GSetStr {ℓ} G X} {
   makeIsGSetHom : IsGSetHom M f N
   makeIsGSetHom .IsGSetHom.pres* = pres
 
-GSetHom : {G : Group ℓ} (X Y : GSet ℓ G) → Type ℓ
+GSetHom : {G : Group ℓ} (X Y : GSet G) → Type ℓ
 GSetHom X Y = Σ[ f ∈ (⟨ X ⟩ → ⟨ Y ⟩) ] IsGSetHom (str X) f (str Y)
 
 IsGSetEquiv : {G : Group ℓ} {X Y : Type ℓ}
   (M : GSetStr G X) (e : X ≃ Y) (N : GSetStr G Y) → Type ℓ
 IsGSetEquiv M e N = IsGSetHom M (e .fst) N
 
-GSetEquiv : {G : Group ℓ} (X Y : GSet ℓ G) → Type ℓ
+GSetEquiv : {G : Group ℓ} (X Y : GSet G) → Type ℓ
 GSetEquiv X Y = Σ[ e ∈ (⟨ X ⟩ ≃ ⟨ Y ⟩) ] IsGSetEquiv (str X) e (str Y)
 

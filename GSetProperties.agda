@@ -37,7 +37,7 @@ equalGSetStructures A B p = isoFunInjective GSetStrIsoΣ A B (equalActions _ _ p
 
 
 -- Use of this should be replaced by isPropIsGSetHom
-equalIsGSetHom : {G : Group ℓ} {X Y : GSet ℓ G} {f : ⟨ X ⟩ → ⟨ Y ⟩} (hom hom' : IsGSetHom (str X) f (str Y)) → hom .IsGSetHom.pres* ≡ hom' .IsGSetHom.pres* → hom ≡ hom'
+equalIsGSetHom : {G : Group ℓ} {X Y : GSet G} {f : ⟨ X ⟩ → ⟨ Y ⟩} (hom hom' : IsGSetHom (str X) f (str Y)) → hom .IsGSetHom.pres* ≡ hom' .IsGSetHom.pres* → hom ≡ hom'
 equalIsGSetHom {G = G} {X = X} {Y = Y} {f = f} hom hom' p = isoFunInjective  IsGSetHomIsoΣ hom hom' p
 
 isPropIsGSetHom : {G : Group ℓ} {X : Type ℓ} {Y : Type ℓ} {M : GSetStr {ℓ} G X} (f : X → Y) {N : GSetStr {ℓ} G Y}
@@ -47,12 +47,12 @@ isPropIsGSetHom {G = G} {X = X} {Y = Y} {M = M} f {N = N} x y = isoFunInjective 
     pres-x = IsGSetHom.pres* x
     pres-y = IsGSetHom.pres* y
 
-idGSetEquiv : {G : Group ℓ} {X : GSet ℓ G} → GSetEquiv X X
+idGSetEquiv : {G : Group ℓ} {X : GSet G} → GSetEquiv X X
 fst (idGSetEquiv {X = X}) = idEquiv ⟨ X ⟩
 snd idGSetEquiv = makeIsGSetHom λ _ _ → refl
 
 -- The reciprocal of an isomorphism is an isomorphism
-isGSetHomInv : {G : Group ℓ} {X : GSet ℓ G} {Y : GSet ℓ G} (f : ⟨ X ⟩ ≃ ⟨ Y ⟩) → IsGSetHom (str X) (fst f) (str Y) → IsGSetHom (str Y) (invEq f) (str X)
+isGSetHomInv : {G : Group ℓ} {X : GSet G} {Y : GSet G} (f : ⟨ X ⟩ ≃ ⟨ Y ⟩) → IsGSetHom (str X) (fst f) (str Y) → IsGSetHom (str Y) (invEq f) (str X)
 isGSetHomInv {ℓ} {G} {X} {Y} (e , eEq) eHom = is-hom-h
   where
     h : ⟨ Y ⟩ → ⟨ X ⟩
@@ -76,7 +76,7 @@ isGSetHomInv {ℓ} {G} {X} {Y} (e , eEq) eHom = is-hom-h
 
 open import Cubical.Foundations.Equiv.Fiberwise
 
-decomposedEqualGSet : {G : Group ℓ} {A : GSet ℓ G} → Type _
+decomposedEqualGSet : {G : Group ℓ} {A : GSet G} → Type _
 decomposedEqualGSet {G = G} {A = A} = Σ (Σ (Type _) λ B → ⟨ A ⟩ ≃ B) λ { (B , e) →
                                        Σ (⟨ G ⟩ → B → B) (λ _*_ →
                                          Σ (isSet B) (λ SB →
@@ -88,13 +88,13 @@ decomposedEqualGSet {G = G} {A = A} = Σ (Σ (Type _) λ B → ⟨ A ⟩ ≃ B) 
 -- theorem {G = G} {A = A} {B = B} = compEquiv (invEquiv ΣPath≃PathΣ) {!!}
 
 
-GSetPath : {G : Group ℓ} {X Y : GSet ℓ G} → (X ≡ Y) ≃ (GSetEquiv X Y)
+GSetPath : {G : Group ℓ} {X Y : GSet G} → (X ≡ Y) ≃ (GSetEquiv X Y)
 GSetPath {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetEquiv {X = A}) contr X Y
   where
-  contr : (A : GSet ℓ G) → isContr (Σ (GSet ℓ G) (λ B → GSetEquiv A B))
+  contr : (A : GSet G) → isContr (Σ (GSet G) (λ B → GSetEquiv A B))
   contr A = subst isContr (sym (ua lem)) lem'
     where
-    lem : Σ (GSet ℓ G) (λ B → GSetEquiv A B) ≃ decomposedEqualGSet {G = G} {A = A}
+    lem : Σ (GSet G) (λ B → GSetEquiv A B) ≃ decomposedEqualGSet {G = G} {A = A}
     lem = compEquiv (Σ-cong-equiv-fst (Σ-cong-equiv-snd λ _ → isoToEquiv (compIso GSetStrIsoΣ ActionIsoΣ))) (compEquiv (compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → compEquiv (invEquiv Σ-assoc-≃) (compEquiv (Σ-cong-equiv-fst Σ-swap-≃) Σ-assoc-≃))) (compEquiv (invEquiv Σ-assoc-≃) (Σ-cong-equiv-snd λ _ → compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → Σ-assoc-≃)))))
     isContrSingl≃ : (A : Type ℓ) → isContr (Σ (Type ℓ) λ B → A ≃ B)
     isContrSingl≃ A = (A , idEquiv A) , λ { (B , e) → ΣPathP (ua e , toPathP (tsp (ua e) ∙ pathToEquiv-ua e)) }

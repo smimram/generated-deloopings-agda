@@ -36,5 +36,5 @@ record XSetStr (X : hSet ℓ) (A : Type ℓ) : Type ℓ where
 
 unquoteDecl XSetStrIsoΣ = declareRecordIsoΣ XSetStrIsoΣ (quote XSetStr)
 
-XSet : ∀ ℓ →  hSet ℓ → Type (ℓ-suc ℓ)
-XSet ℓ X = TypeWithStr ℓ (XSetStr X)
+XSet : {ℓ : Level} → hSet ℓ → Type (ℓ-suc ℓ)
+XSet {ℓ} X = TypeWithStr ℓ (XSetStr X)

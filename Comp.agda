@@ -24,18 +24,17 @@ private
 
 -- Definition of the connected component of a pointed space
 Comp : Pointed ℓ → Pointed ℓ
-Comp X = ( Σ ⟨ X ⟩ (λ x  → ∥ (pt X) ≡ x ∥₁), (pt X , ∣ refl ∣₁) )
+Comp X = Σ ⟨ X ⟩ (λ x  → ∥ (pt X) ≡ x ∥₁), (pt X , ∣ refl ∣₁)
+
+PathComp : {A : Pointed ℓ} (x y : ⟨ Comp A ⟩) → (x ≡ y) ≃ (fst x ≡ fst y)
+PathComp x y = isoToEquiv e
+  where
+  open Iso
+  e : Iso (x ≡ y) (fst x ≡ fst y)
+  fun e p = cong fst p
+  inv e p = ΣPathP (p , (toPathP (isPropPropTrunc _ _)))
+  rightInv e p = refl
+  leftInv e p = isoFunInjective (equivToIso (invEquiv (Σ≡PropEquiv (λ _ → isPropPropTrunc))))  _ _ refl
 
 loopCompIsLoop : {A : Pointed ℓ} → Ω (Comp A) ≃∙ Ω A
-loopCompIsLoop {ℓ} {A} = isoToEquiv e , refl
-  where
-  e : Iso (fst (Ω (Comp A))) (fst (Ω A))
-
-  -- On projete ((a0, _) ≡ (a0,_)) sur (a0 ≡ a0)
-  Iso.fun e p = cong fst p
-
-  -- Pour retourner en arrière on remarque qu'il n'y a qu'un témoin de (∥ x ≡ y ∥₁)
-  Iso.inv e p = ΣPathP (p , toPathP (isPropPropTrunc _ _))
-
-  Iso.rightInv e p = refl
-  Iso.leftInv e p = isoFunInjective (equivToIso (invEquiv (Σ≡PropEquiv (λ _ → isPropPropTrunc))))  _ _ refl
+loopCompIsLoop {ℓ} {A} = PathComp _ _ , refl
