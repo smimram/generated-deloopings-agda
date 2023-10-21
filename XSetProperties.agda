@@ -38,8 +38,8 @@ U {G = G} {X = X} {ι = ι} (A , strA) = A , xsetstr (action ϕ∘ι  isSetA)
   ϕ∘ι x a = ϕ (ι x) a
 
 postulate
-  splitGSet≡ : {G : Group ℓ} {A B : GSet G} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((g : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a)))
   splitXSet≡ : {X : hSet ℓ} {A B : XSet X} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a)))
+  splitGSet≡ : {G : Group ℓ} {A B : GSet G} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((g : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a)))
 
   theorem1 : {G : Group ℓ} {A B : GSet G} {p : ⟨ A ⟩ ≡ ⟨ B ⟩} {g : ⟨ G ⟩} → isProp ((a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a))
   theorem2 : {X : hSet ℓ} {A B : XSet X} {p : ⟨ A ⟩ ≡ ⟨ B ⟩} → isProp ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a))

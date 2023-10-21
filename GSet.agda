@@ -7,7 +7,7 @@
 
 -}
 
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 
 open import Cubical.Foundations.Everything
 open import Cubical.Algebra.Group
@@ -40,6 +40,3 @@ unquoteDecl GSetStrIsoΣ = declareRecordIsoΣ GSetStrIsoΣ (quote GSetStr)
 
 GSet : {ℓ : Level} → Group ℓ → Type (ℓ-suc ℓ)
 GSet {ℓ} G = TypeWithStr ℓ (GSetStr G)
-
-isGroupoidGSet : (G : Group ℓ) → isGroupoid (GSet G)
-isGroupoidGSet G = {!!}

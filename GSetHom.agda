@@ -54,6 +54,9 @@ module _ {G : Group ℓ} where
 
   makeIsGSetEquiv = makeIsGSetHom
 
+  isPropIsGSetHom : {X Y : GSet G} {f : ⟨ X ⟩ → ⟨ Y ⟩} → isProp (IsGSetHom (str X) f (str Y))
+  isPropIsGSetHom {X = X} {Y = Y} = isOfHLevelRespectEquiv 1 (invEquiv (isoToEquiv IsGSetHomIsoΣ)) (isPropΠ2 λ g x → ((str Y) .GSetStr.is-set) _ _)
+
   GSetIdEquiv : (X : GSet G) → GSetEquiv X X
   GSetIdEquiv X = idEquiv ⟨ X ⟩ , makeIsGSetEquiv λ x y → refl
 

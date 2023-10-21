@@ -5,6 +5,7 @@
   - Equality types for Actions and GSetHoms
   - Properties of GSetEquivs
   - Isomorphisms and paths are equivalent (through fundamental theorem of identity types)
+  - Gsets form a groupoid
 
 -}
 
@@ -39,13 +40,6 @@ equalGSetStructures A B p = isoFunInjective GSetStrIsoΣ A B (equalActions _ _ p
 -- Use of this should be replaced by isPropIsGSetHom
 equalIsGSetHom : {G : Group ℓ} {X Y : GSet G} {f : ⟨ X ⟩ → ⟨ Y ⟩} (hom hom' : IsGSetHom (str X) f (str Y)) → hom .IsGSetHom.pres* ≡ hom' .IsGSetHom.pres* → hom ≡ hom'
 equalIsGSetHom {G = G} {X = X} {Y = Y} {f = f} hom hom' p = isoFunInjective  IsGSetHomIsoΣ hom hom' p
-
-isPropIsGSetHom : {G : Group ℓ} {X : Type ℓ} {Y : Type ℓ} {M : GSetStr {ℓ} G X} (f : X → Y) {N : GSetStr {ℓ} G Y}
-  → isProp (IsGSetHom M f N)
-isPropIsGSetHom {G = G} {X = X} {Y = Y} {M = M} f {N = N} x y = isoFunInjective IsGSetHomIsoΣ x y (isPropΠ2 (λ (g : ⟨ G ⟩) (x : X) → (GSetStr.is-set N) (f ((GSetStr._*_ M) g x)) ((GSetStr._*_ N) g (f x))) pres-x pres-y)
-  where
-    pres-x = IsGSetHom.pres* x
-    pres-y = IsGSetHom.pres* y
 
 idGSetEquiv : {G : Group ℓ} {X : GSet G} → GSetEquiv X X
 fst (idGSetEquiv {X = X}) = idEquiv ⟨ X ⟩
@@ -150,3 +144,6 @@ GSetPath {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetEq
             f (g * (f⁻ x)) ≡⟨ (hom'' .IsGSetHom.pres*) _ _ ⟩
             g *'' (f (f⁻ x)) ≡⟨ cong (λ y → g *'' y) (secEq e _) ⟩
             g *'' x ∎
+
+isGroupoidGSet : (G : Group ℓ) → isGroupoid (GSet G)
+isGroupoidGSet G X Y = isOfHLevelRespectEquiv 2 (invEquiv GSetPath) (isSetΣ (isOfHLevel≃ 2 ((str X) .GSetStr.is-set) ((str Y) .GSetStr.is-set)) λ _ → isOfHLevelSuc 1 isPropIsGSetHom)
