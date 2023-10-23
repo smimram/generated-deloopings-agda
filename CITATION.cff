@@ -3,5 +3,7 @@ message: "If you use this software, please cite it as below."
 authors:
 - family-names: "Champin"
   given-names: "Camil"
+- family-names: "Mimram"
+  given-names: "Samuel"
 title: "Delooping generated groups"
 url: "https://github.com/camilchp/generated-deloopings"

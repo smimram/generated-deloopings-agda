@@ -55,11 +55,11 @@ module _ {G : Group ℓ} where
   GSetHom : (X Y : GSet G) → Type ℓ
   GSetHom X Y = Σ[ f ∈ (⟨ X ⟩ → ⟨ Y ⟩) ] IsGSetHom (str X) f (str Y)
 
-  IsGSetEquiv : {X Y : Type ℓ} (M : GSetStr G X) (e : X ≃ Y) (N : GSetStr G Y) → Type ℓ
-  IsGSetEquiv M e N = IsGSetHom M (e .fst) N
+  isGSetEquiv : {X Y : Type ℓ} (M : GSetStr G X) (e : X ≃ Y) (N : GSetStr G Y) → Type ℓ
+  isGSetEquiv M e N = IsGSetHom M (e .fst) N
 
   GSetEquiv : (X Y : GSet G) → Type ℓ
-  GSetEquiv X Y = Σ[ e ∈ (⟨ X ⟩ ≃ ⟨ Y ⟩) ] IsGSetEquiv (str X) e (str Y)
+  GSetEquiv X Y = Σ[ e ∈ (⟨ X ⟩ ≃ ⟨ Y ⟩) ] isGSetEquiv (str X) e (str Y)
 
   makeIsGSetEquiv = makeIsGSetHom
 
@@ -101,10 +101,10 @@ module _ {G : Group ℓ} where
   GSetUAη p = retEq (idToGSetEquiv , GSetUnivalence) p
 
   GSetUAFst : {X Y : GSet G} (f : GSetEquiv X Y) → cong fst (GSetUA f) ≡ ua (fst f)
-  GSetUAFst f = pathEq lem -- ua (fst f)
+  GSetUAFst f = pathEq lem
     where
     lem =
       transport (cong fst (GSetUA f)) ≡⟨ refl ⟩
-      subst fst (GSetUA f) ≡⟨ {!!} ⟩
-      equivFun (fst f) ≡⟨ {!uaβ!} ⟩
-      transport (ua (fst f)) ∎
+      subst fst (GSetUA f)            ≡⟨ {!!} ⟩
+      equivFun (fst f)                ≡⟨ sym (funExt (λ x → uaβ (fst f) x)) ⟩
+      transport (ua (fst f))          ∎

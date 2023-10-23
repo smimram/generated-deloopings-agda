@@ -9,7 +9,7 @@
 
 -}
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 
 open import Cubical.Foundations.Everything
 open import Cubical.Algebra.Group
@@ -144,6 +144,18 @@ GSetPath {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetEq
             f (g * (f⁻ x)) ≡⟨ (hom'' .IsGSetHom.pres*) _ _ ⟩
             g *'' (f (f⁻ x)) ≡⟨ cong (λ y → g *'' y) (secEq e _) ⟩
             g *'' x ∎
+
+GSetPathFst : {G : Group ℓ} {X Y : GSet G} (p : X ≡ Y) → equivFun GSetPath p .fst ≡ pathToEquiv (cong fst p)
+GSetPathFst {X = X} = idToGSetEquivFst
+
+-- variant of the above where the equivalence is definitionally cong fst p
+GSetPath' : {G : Group ℓ} {X Y : GSet G} → (X ≡ Y) ≃ (GSetEquiv X Y)
+GSetPath' {G = G} {X = X} {Y = Y} = f , subst isEquiv eq (snd GSetPath)
+  where
+  f : X ≡ Y → GSetEquiv X Y
+  f p = pathToEquiv (cong fst p) , subst (λ f → isGSetEquiv (str X) f (str Y)) (GSetPathFst p) (equivFun GSetPath p .snd)
+  eq : equivFun GSetPath ≡ f
+  eq = funExt λ p → Σ≡Prop (λ f → isPropIsGSetHom) (GSetPathFst p)
 
 isGroupoidGSet : (G : Group ℓ) → isGroupoid (GSet G)
 isGroupoidGSet G X Y = isOfHLevelRespectEquiv 2 (invEquiv GSetPath) (isSetΣ (isOfHLevel≃ 2 ((str X) .GSetStr.is-set) ((str Y) .GSetStr.is-set)) λ _ → isOfHLevelSuc 1 isPropIsGSetHom)

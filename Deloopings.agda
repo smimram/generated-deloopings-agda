@@ -82,11 +82,14 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       where
       q : ⟨ G ⟩ ≡ ⟨ G ⟩
       q = cong fst p
+      qNat : (x y : ⟨ G ⟩) → x · transport q y ≡ transport q (x · y)
+      qNat x y = sym (equivFun GSetPath' p .snd .IsGSetHom.pres* x y)
       lem =
         equivFun (fst (idToGSetEquiv (m (subst fst p 1g)))) ≡⟨ refl ⟩
         equivFun (fst (idToGSetEquiv (m (transport q 1g)))) ≡⟨ cong equivFun (cong fst (GSetUAβ _)) ⟩
         equivFun (fst (m≃ (transport q 1g)))                ≡⟨ refl ⟩
-        (λ y → y · (transport q 1g))                        ≡⟨ {!!} ⟩
+        (λ y → y · (transport q 1g))                        ≡⟨ funExt (λ y → qNat y 1g) ⟩
+        (λ y → transport q (y · 1g))                        ≡⟨ funExt (λ y → cong (transport q) (·IdR y)) ⟩
         transport q                                         ≡⟨ refl ⟩
         equivFun (pathToEquiv q)                            ≡⟨ cong equivFun (sym (idToGSetEquivFst p)) ⟩
         equivFun (fst (idToGSetEquiv p))                    ∎
