@@ -12,6 +12,7 @@
 
 open import Cubical.Foundations.Everything
 open import Cubical.Foundations.Univalence
+open import Cubical.Functions.Embedding
 open import Cubical.Algebra.Group
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Algebra.Group.MorphismProperties
@@ -65,13 +66,30 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       leftInv e y = sym (·Assoc _ _ _) ∙ cong (λ x → y · x) (·InvR x) ∙ ·IdR y
     m : ⟨ G ⟩ → PG {G = G} ≡ PG
     m x = GSetUA (m≃ x)
-    mTr : (x y : ⟨ G ⟩) → subst fst (m x) y ≡ y · x
-    mTr x y = {!!} ∙ uaβ (fst (m≃ x)) y
     e : Iso (PG ≡ PG) ⟨ G ⟩
     fun e p = transport (cong fst p) 1g
     Iso.inv e x = m x
     rightInv e x = mTr x 1g ∙ ·IdL x
-    leftInv e p = cong m {!!} ∙ {!!}
+      where
+      mTr : (x y : ⟨ G ⟩) → subst fst (m x) y ≡ y · x
+      mTr x y =
+        subst fst (m x) y             ≡⟨ refl ⟩
+        transport (cong fst (m x)) y  ≡⟨ funExt⁻ (cong transport (GSetUAFst (m≃ x))) y ⟩
+        transport (ua (fst (m≃ x))) y ≡⟨ uaβ (fst (m≃ x)) y ⟩
+        y · x                         ∎
+    -- we are using here the variant of pathEq for GSets
+    leftInv e p = isEmbedding→Inj {f = idToGSetEquiv} (isEquiv→isEmbedding GSetUnivalence) (m (subst fst p 1g)) p (GSetEquiv≡ lem)
+      where
+      q : ⟨ G ⟩ ≡ ⟨ G ⟩
+      q = cong fst p
+      lem =
+        equivFun (fst (idToGSetEquiv (m (subst fst p 1g)))) ≡⟨ refl ⟩
+        equivFun (fst (idToGSetEquiv (m (transport q 1g)))) ≡⟨ cong equivFun (cong fst (GSetUAβ _)) ⟩
+        equivFun (fst (m≃ (transport q 1g)))                ≡⟨ refl ⟩
+        (λ y → y · (transport q 1g))                        ≡⟨ {!!} ⟩
+        transport q                                         ≡⟨ refl ⟩
+        equivFun (pathToEquiv q)                            ≡⟨ cong equivFun (sym (idToGSetEquivFst p)) ⟩
+        equivFun (fst (idToGSetEquiv p))                    ∎
 
   torsorDeloops : GroupIso (π₁ BG isGroupoidBG) G
   torsorDeloops = compGroupIso {G = π₁ BG isGroupoidBG} (π₁Comp (GSet G , PG) (isGroupoidGSet G)) PGloops
