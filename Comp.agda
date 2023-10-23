@@ -70,9 +70,13 @@ groupoidComp A gpd = isGroupoidΣ gpd λ x → isOfHLevelPlus {n = 1} 2 isPropPr
 loopCompIsLoop : {A : Pointed ℓ} → Ω (Comp A) ≃∙ Ω A
 loopCompIsLoop {ℓ} {A} = PathComp _ _ , refl
 
+-- should be somewhere in the standard library...
+congComp : {A B : Type ℓ} {x y z : A} (f : A → B) (p : x ≡ y) (q : y ≡ z) → cong f (p ∙ q) ≡ cong f p ∙ cong f q
+congComp f p q = J (λ z q → cong f (p ∙ q) ≡ cong f p ∙ cong f q) (cong (cong f) (sym (rUnit p)) ∙ rUnit (cong f p)) q
+
 π₁Comp : (A : Pointed ℓ) (gpd : isGroupoid ⟨ A ⟩) → GroupIso (π₁ (Comp A) (groupoidComp A gpd)) (π₁ A gpd)
 π₁Comp A gpd = equivToIso (PathComp _ _) , record {
-  pres· = λ x y → cong fst (x ∙ y) ≡⟨ {!!} ⟩ (cong fst x) ∙ (cong fst y) ∎;
-  pres1 = cong (fst {A = ⟨ A ⟩} {B = λ x → ∥ pt A ≡ x ∥₁}) (refl) ≡⟨ {!!} ⟩ refl ∎ ;
-  presinv = λ x → cong fst (sym x) ≡⟨ {!!} ⟩ sym (cong fst x) ∎
+  pres· = λ p q → cong fst (p ∙ q) ≡⟨ congComp fst p q ⟩ (cong fst p) ∙ (cong fst q) ∎;
+  pres1 = refl;
+  presinv = λ x → refl
   }
