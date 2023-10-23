@@ -10,6 +10,7 @@
 {-# OPTIONS --cubical --allow-unsolved-metas #-}
 
 open import Cubical.Foundations.Everything
+open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group
 open import Cubical.Reflection.RecordEquiv
 
@@ -86,7 +87,7 @@ module _ {G : Group ℓ} where
       pathToEquiv (cong fst (refl {x = X})) ∎
 
   GSetEquiv≡ : {X Y : GSet G} {f g : GSetEquiv X Y} → equivFun (fst f) ≡ equivFun (fst g) → f ≡ g
-  GSetEquiv≡ = {!!} -- IsGSetEquiv and isEquiv are propositions
+  GSetEquiv≡ p = Σ≡Prop (λ _ → isPropIsGSetHom) (Σ≡Prop isPropIsEquiv p)
 
   GSetUnivalence : {X Y : GSet G} → isEquiv (idToGSetEquiv {X = X} {Y = Y})
   GSetUnivalence = {!!}

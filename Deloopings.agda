@@ -117,7 +117,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       f (GroupStr.inv (str (π₁ (GSet G , PG) (isGroupoidGSet G))) p) ≡⟨ refl ⟩
       f (sym p) ≡⟨ refl ⟩
       transport (cong fst (sym p)) 1g ≡⟨ refl ⟩
-      transport (sym (cong fst p)) 1g ≡⟨ {!!} ⟩
+      transport (sym (cong fst p)) 1g ≡⟨ {!!} ⟩ -- inverse by naturality too
       GroupStr.inv (str G) (f p) ∎
 
   torsorDeloops : GroupIso (π₁ BG isGroupoidBG) G
