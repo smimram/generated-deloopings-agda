@@ -52,7 +52,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   BG' = Comp (XSet X , PX)
 
   PGloops : GroupIso (π₁ (GSet G , PG) (isGroupoidGSet G)) G
-  PGloops = e , {!!}
+  PGloops = e , gh
     where
     open Iso
     open GroupStr (str G)
@@ -63,11 +63,13 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       fun e y = y · x
       Iso.inv e y = y · GroupStr.inv (str G) x
       rightInv e y = sym (·Assoc _ _ _) ∙ cong (λ x → y · x) (·InvL x) ∙ ·IdR y
-      leftInv e y = sym (·Assoc _ _ _) ∙ cong (λ x → y · x) (·InvR x) ∙ ·IdR y
+      leftInv  e y = sym (·Assoc _ _ _) ∙ cong (λ x → y · x) (·InvR x) ∙ ·IdR y
     m : ⟨ G ⟩ → PG {G = G} ≡ PG
     m x = GSetUA (m≃ x)
+    f : (PG ≡ PG) → ⟨ G ⟩
+    f p = transport (cong fst p) 1g
     e : Iso (PG ≡ PG) ⟨ G ⟩
-    fun e p = transport (cong fst p) 1g
+    fun e = f
     Iso.inv e x = m x
     rightInv e x = mTr x 1g ∙ ·IdL x
       where
@@ -93,6 +95,30 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
         transport q                                         ≡⟨ refl ⟩
         equivFun (pathToEquiv q)                            ≡⟨ cong equivFun (sym (idToGSetEquivFst p)) ⟩
         equivFun (fst (idToGSetEquiv p))                    ∎
+    open IsGroupHom
+    gh : IsGroupHom (str (π₁ (GSet G , PG) (isGroupoidGSet G))) f (str G)
+    pres· gh p q =
+      f ((str (π₁ (GSet G , PG) (isGroupoidGSet G)) GroupStr.· p) q) ≡⟨ refl ⟩
+      f (p ∙ q) ≡⟨ refl ⟩
+      transport (cong fst (p ∙ q)) 1g ≡⟨ refl ⟩
+      transport (cong fst p ∙ cong fst q) 1g ≡⟨ transportComposite (cong fst p) (cong fst q) 1g ⟩
+      transport (cong fst q) (transport (cong fst p) 1g) ≡⟨ refl ⟩
+      transport (cong fst q) (f p) ≡⟨ cong (transport (cong fst q)) (sym (·IdR (f p))) ⟩
+      transport (cong fst q) (f p · 1g) ≡⟨ {!!} ⟩ -- naturality (generalization of qNat)
+      f p · transport (cong fst q) 1g ≡⟨ refl ⟩
+      f p · f q ∎
+    pres1 gh =
+      f (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G)))) ≡⟨ refl ⟩
+      transport (cong fst (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G))))) 1g ≡⟨ refl ⟩
+      transport (cong fst (refl {x = PG {G = G}})) 1g ≡⟨ refl ⟩
+      transport (refl {x = ⟨ G ⟩}) 1g ≡⟨ transportRefl 1g ⟩
+      1g ∎
+    presinv gh p =
+      f (GroupStr.inv (str (π₁ (GSet G , PG) (isGroupoidGSet G))) p) ≡⟨ refl ⟩
+      f (sym p) ≡⟨ refl ⟩
+      transport (cong fst (sym p)) 1g ≡⟨ refl ⟩
+      transport (sym (cong fst p)) 1g ≡⟨ {!!} ⟩
+      GroupStr.inv (str G) (f p) ∎
 
   torsorDeloops : GroupIso (π₁ BG isGroupoidBG) G
   torsorDeloops = compGroupIso {G = π₁ BG isGroupoidBG} (π₁Comp (GSet G , PG) (isGroupoidGSet G)) PGloops
