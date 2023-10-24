@@ -146,7 +146,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
           (λ u q a →
             let inv = str G .GroupStr.inv in
             transport p ([α] (ι* (FG.inv u)) a) ≡⟨ cong (λ x → transport p ([α] x a)) (ι*GH .presinv u) ⟩ -- ι* morphism
-            transport p ([α] (inv (ι* u)) a)    ≡⟨ sym (act-inv α (sym (sym (q _) ∙ cong (transport p) (α .Action.·Composition _ _ a) ∙ cong (transport p) (cong (λ x → [α] x a) (str G .GroupStr.·InvR _)) ∙ cong (transport p) (α .Action.·Unit a)))) ⟩
+            transport p ([α] (inv (ι* u)) a)    ≡⟨ sym (act-inv α (sym (sym (q _) ∙ cong (transport p) (α .Action.·Composition _ _ a ∙ cong (λ x → [α] x a) (str G .GroupStr.·InvR _) ∙ α .Action.·Unit a)))) ⟩
             [α] (inv (ι* u)) (transport p a)    ≡⟨ cong (λ x → [α] x (transport p a)) (ι*GH .presinv u) ⟩ -- ι* morphism
             [α] (ι* (FG.inv u)) (transport p a) ∎
           )
