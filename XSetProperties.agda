@@ -10,6 +10,7 @@
 {-# OPTIONS --cubical --allow-unsolved-metas #-}
 
 open import Cubical.Foundations.Everything
+open import Cubical.Functions.Embedding
 open import Cubical.Algebra.Group
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Homotopy.Loopspace
@@ -23,10 +24,9 @@ open import GSetProperties
 open import Generators
 open import PrincipalTorsor
 
-
 private
   variable
-    ℓ : Level
+    ℓ ℓ' : Level
 
 -- A natural forgetful functor for subsets of groups:
 U : {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} → GSet G → XSet X
@@ -36,6 +36,38 @@ U {G = G} {X = X} {ι = ι} (A , strA) = A , xsetstr (action ϕ∘ι  isSetA)
   ϕ = strA .GSetStr._*_
   ϕ∘ι : ⟨ X ⟩ → A → A
   ϕ∘ι x a = ϕ (ι x) a
+
+XSetΣ : {ℓ : Level} {X : hSet ℓ} → XSet X ≃ Σ (Type ℓ) λ A → (⟨ X ⟩ → A → A) × isSet A
+XSetΣ {ℓ = ℓ} {X = X} = isoToEquiv e
+  where
+  open Iso
+  open XSetStr
+  open SetAction
+  e : Iso (XSet X) (Σ (Type ℓ) λ A → (⟨ X ⟩ → A → A) × isSet A)
+  fun e S = ⟨ S ⟩ , str S .ϕ ._*_ , str S .ϕ .is-set
+  Iso.inv e (A , f , SA) = A , (xsetstr (action f SA))
+  rightInv e (A , f , SA) = refl
+  leftInv e S = refl
+
+XSet≡ : {X : hSet ℓ} {A B : XSet X} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a)))
+XSet≡ {X = X} {A = A} {B = B} =
+  A ≡ B ≃⟨ cong (equivFun XSetΣ) , isEquiv→isEmbedding (snd XSetΣ) A B ⟩
+  A' ≡ B' ≃⟨ invEquiv (ΣPathTransport≃PathΣ A' B') ⟩
+  Σ (⟨ A ⟩ ≡ ⟨ B ⟩) (λ p → subst (λ A → (⟨ X ⟩ → A → A) × isSet A) p (snd A') ≡ snd B') ≃⟨ Σ-cong-equiv-snd (λ p → invEquiv (Σ≡PropEquiv λ _ → isPropIsSet)) ⟩
+  Σ (⟨ A ⟩ ≡ ⟨ B ⟩) (λ p → subst (λ A → (⟨ X ⟩ → A → A)) p fA ≡ fB) ≃⟨ Σ-cong-equiv-snd (λ p → pathToEquiv (lem p)) ⟩ -- funTypeTransp -- compEquiv (pathToEquiv {!fromPathP (funTypeTransp ? ? ? ?)!}) {!!})
+  (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a))) ■
+  where
+    open XSetStr
+    open SetAction
+    A' = equivFun XSetΣ A
+    B' = equivFun XSetΣ B
+    fA = str A .ϕ ._*_
+    fB = str B .ϕ ._*_
+    lem  = λ (p : ⟨ A ⟩ ≡ ⟨ B ⟩) →
+      subst (λ A → ⟨ X ⟩ → A → A) p fA ≡ fB ≡⟨ refl ⟩
+      transport (cong (λ A → ⟨ X ⟩ → A → A) p) fA ≡ fB ≡⟨ {!fromPathP (funTypeTransp ? ? ? ?)!} ⟩
+      {!!} ≡⟨ {!!} ⟩
+      ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((ϕ (str A) * x) a) ≡ (ϕ (str B) * x) (transport p a)) ∎
 
 postulate
   splitXSet≡ : {X : hSet ℓ} {A B : XSet X} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a)))

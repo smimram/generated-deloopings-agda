@@ -25,7 +25,7 @@ open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Algebra.Monoid
 open import Cubical.Algebra.Semigroup
 open import Cubical.Foundations.GroupoidLaws as GL
-
+open import Base
 
 private
   variable
@@ -69,10 +69,6 @@ groupoidComp A gpd = isGroupoidΣ gpd λ x → isOfHLevelPlus {n = 1} 2 isPropPr
 
 loopCompIsLoop : {A : Pointed ℓ} → Ω (Comp A) ≃∙ Ω A
 loopCompIsLoop {ℓ} {A} = PathComp _ _ , refl
-
--- should be somewhere in the standard library...
-congComp : {A B : Type ℓ} {x y z : A} (f : A → B) (p : x ≡ y) (q : y ≡ z) → cong f (p ∙ q) ≡ cong f p ∙ cong f q
-congComp f p q = J (λ z q → cong f (p ∙ q) ≡ cong f p ∙ cong f q) (cong (cong f) (sym (rUnit p)) ∙ rUnit (cong f p)) q
 
 π₁Comp : (A : Pointed ℓ) (gpd : isGroupoid ⟨ A ⟩) → GroupIso (π₁ (Comp A) (groupoidComp A gpd)) (π₁ A gpd)
 π₁Comp A gpd = equivToIso (PathComp _ _) , record {
