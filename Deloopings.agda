@@ -46,7 +46,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   isGroupoidBG = groupoidComp (GSet G , PG) (isGroupoidGSet G)
 
   PX : XSet X
-  PX = U {G = G} {ι = ι} PG
+  PX = U {G = G} ι PG
 
   BG' : Pointed (ℓ-suc ℓ)
   BG' = Comp (XSet X , PX)
