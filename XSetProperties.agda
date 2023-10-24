@@ -60,8 +60,8 @@ XSet≃Σ {ℓ = ℓ} {X = X} = isoToEquiv e
 XSet≡Σ : {X : hSet ℓ} (A B : XSet X) → Type _
 XSet≡Σ {X = X} A B = (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a)))
 
-XSet≡≃Σ : {X : hSet ℓ} {A B : XSet X} → (A ≡ B) ≃ XSet≡Σ A B
-XSet≡≃Σ {X = X} {A = A} {B = B} =
+XSet≡≃Σ : {X : hSet ℓ} (A B : XSet X) → (A ≡ B) ≃ XSet≡Σ A B
+XSet≡≃Σ {X = X} A B =
   A ≡ B ≃⟨ cong (equivFun XSet≃Σ) , isEquiv→isEmbedding (snd XSet≃Σ) A B ⟩
   A' ≡ B' ≃⟨ invEquiv (ΣPathTransport≃PathΣ A' B') ⟩
   Σ (⟨ A ⟩ ≡ ⟨ B ⟩) (λ p → subst (λ A → (⟨ X ⟩ → A → A) × isSet A) p (snd A') ≡ snd B') ≃⟨ Σ-cong-equiv-snd (λ p → invEquiv (Σ≡PropEquiv λ _ → isPropIsSet)) ⟩
@@ -90,25 +90,26 @@ GSet≡Σ : {G : Group ℓ} (A B : GSet G) → Type _
 GSet≡Σ {G = G} A B = Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) x a) ≡ (str B .GSetStr._*_) x (transport p a))
 
 postulate
-  GSet≡≃Σ : {G : Group ℓ} {A B : GSet G} → (A ≡ B) ≃ GSet≡Σ A B
+  -- similar to XSet≡≃Σ
+  GSet≡≃Σ : {G : Group ℓ} (A B : GSet G) → (A ≡ B) ≃ GSet≡Σ A B
 
 module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   open GroupStr (str G)
   open principal-torsor {G = G}
   open generators {G = G} {X = X} {ι = ι}
+  ι* = ι-star-hom .fst
+  α = str PG .GSetStr.ϕ
+  [α] = α .Action._*_
+  isSetG : isSet ⟨ G ⟩
+  isSetG = α .Action.is-set
   module _ {generates : ι-generates} where
 
     isoΣ : Iso (GSet≡Σ PG PG) (XSet≡Σ {X = X} (U ι PG) (U ι PG))
     Iso.fun isoΣ (p , q) = p , λ x a → q (ι x) a
-    Iso.inv isoΣ (p , q) = p , {!!}
+    Iso.inv isoΣ (p , q) = p , λ x a → comm x a
       where
       open GSetStr
       open Action
-      ι* = ι-star-hom .fst
-      α = str PG .ϕ
-      [α] = α ._*_
-      isSetG : isSet ⟨ G ⟩
-      isSetG = α .is-set
       comm : (x : ⟨ G ⟩) (a : ⟨ PG ⟩) → transport p ([α] x a) ≡ [α] x (transport p a)
       comm x a = PT.rec (isSetG _ _) (λ { (u , r) → comm' u r }) s
         where
@@ -133,66 +134,22 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
             [α] (ι* (u ·f v)) (transport p a) ∎
           )
           (λ a →
-            transport p ([α] (ι* ε) a) ≡⟨ {!!} ⟩
+            transport p ([α] (ι* ε) a) ≡⟨ {!!} ⟩ -- ι* morphism
+            transport p ([α] 1g a) ≡⟨ {!!} ⟩ -- α action
+            transport p a ≡⟨ {!!} ⟩ -- α action
+            [α] 1g (transport p a) ≡⟨ {!!} ⟩ -- ι* morphism
             [α] (ι* ε) (transport p a) ∎
           )
-          (λ x q a → {!!})
+          (λ x q a →
+            transport p ([α] (ι* (FG.inv x)) a) ≡⟨ {!!} ⟩ -- ι* morphism
+            transport p ([α] (str G .GroupStr.inv (ι* x)) a) ≡⟨ {!!} ⟩ -- α action
+            [α] (str G .GroupStr.inv (ι* x)) (transport p a) ≡⟨ {!!} ⟩ -- ι* morphism
+            [α] (ι* (FG.inv x)) (transport p a) ∎
+          )
         comm' : (u : FreeGroup ⟨ X ⟩) → ι* u ≡ x → transport p ([α] x a) ≡ [α] x (transport p a)
         comm' u q = subst (λ x → transport p ([α] x a) ≡ [α] x (transport p a)) q (comm* u a)
-    Iso.rightInv isoΣ = {!!}
-    Iso.leftInv isoΣ = {!!}
+    Iso.rightInv isoΣ (p , q) = Σ≡Prop (λ _ → isPropΠ λ _ → isPropΠ λ _ → isSetG _ _) refl
+    Iso.leftInv isoΣ (p , q) = Σ≡Prop (λ _ → isPropΠ λ _ → isPropΠ λ _ → isSetG _ _) refl
 
-
-
-
--- postulate
-  -- -- by XSet≡ above
-  -- splitXSet≡ : {X : hSet ℓ} {A B : XSet X} → (A ≡ B) ≃ XSet≡Σ A B
-  -- splitGSet≡ : {G : Group ℓ} {A B : GSet G} → (A ≡ B) ≃ GSet≡Σ A B
-
--- theorem1 : {G : Group ℓ} {A B : GSet G} {p : ⟨ A ⟩ ≡ ⟨ B ⟩} {g : ⟨ G ⟩} → isProp ((a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a))
--- theorem1 {B = B} = isPropΠ λ _ → str B .GSetStr.ϕ .Action.is-set _ _
-
--- theorem2 : {X : hSet ℓ} {A B : XSet X} {p : ⟨ A ⟩ ≡ ⟨ B ⟩} → isProp ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a))
--- theorem2 {B = B} = isPropΠ λ _ → isPropΠ λ _ → str B .XSetStr.ϕ .SetAction.is-set _ _
-
--- theorem3 : {G : Group ℓ} {A B : GSet G} {p : ⟨ A ⟩ ≡ ⟨ B ⟩} → isProp ((g : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a))
--- theorem3 {B = B} = isPropΠ λ _ → isPropΠ λ _ → str B .GSetStr.ϕ .Action.is-set _ _
-
--- module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
-  -- open GroupStr (str G)
-  -- open principal-torsor {G = G}
-  -- open generators {G = G} {X = X} {ι = ι}
-  -- module _ {generates : ι-generates} where
-    -- thm : Iso (PG ≡ PG) (U ι PG ≡ U ι PG)
-    -- Iso.fun thm eq = invEq (splitXSet≡ {X = X}) (p , λ x a → comm (ι x) a)
-      -- where
-      -- t = equivFun splitGSet≡ eq
-      -- p = fst t
-      -- comm = snd t
-    -- Iso.inv thm eq = invEq splitGSet≡ (p , comm-star)
-      -- where
-      -- t = equivFun splitXSet≡ eq
-      -- p : ⟨ G ⟩ ≡ ⟨ G ⟩
-      -- p = fst t
-      -- comm = snd t
-      -- comm-star : (g : ⟨ G ⟩) → (a : ⟨ G ⟩) → (transport p (g · a)) ≡ (g · (transport p a))
-      -- comm-star g = PT.rec (theorem1 {G = G} {A = PG} {B = PG} {p = p} {g = g}) lem (generates g)
-        -- where
-        -- lem : (Σ (FreeGroup ⟨ X ⟩) λ x → (ι-star-hom .fst x ≡ g)) → ((a : ⟨ G ⟩) → transport p (g · a) ≡ g · (transport p a))
-        -- lem (x , prf) a =
-          -- transport p (g · a)                       ≡⟨ cong (λ y → transport p (y · a)) (sym prf) ⟩
-          -- transport p ((ι-star-hom .fst x)  · a)     ≡⟨ {!!} ⟩ -- gonna have to show that this function of 'x' is a morphism from FreeGroupGroup X to G and use uniqueness
-          -- (ι-star-hom .fst x) · (transport p a)      ≡⟨ cong (λ y → y · (transport p a)) prf ⟩
-          -- g · (transport p a) ∎
-    -- Iso.rightInv thm eq = sym (
-      -- eq ≡⟨ sym (retEq splitXSet≡ eq) ⟩
-      -- (invEq splitXSet≡) (equivFun splitXSet≡ eq) ≡⟨ refl ⟩
-      -- (invEq splitXSet≡) (p , com) ≡⟨ {!!} ⟩
-      -- (Iso.fun thm) (Iso.inv thm eq) ∎)
-        -- where
-        -- t = equivFun splitXSet≡ eq
-        -- p = fst t
-        -- com = snd t
-    -- -- Iso.rightInv thm eq = invEq (congEquiv splitXSet≡) (ΣPathP ( {!!} , (theorem2 _ _)))
-    -- Iso.leftInv thm eq = {!!}
+    theorem : (PG ≡ PG) ≃ (U {X = X} ι PG ≡ U ι PG)
+    theorem = compEquiv (GSet≡≃Σ PG PG) (compEquiv (isoToEquiv isoΣ) (invEquiv (XSet≡≃Σ (U ι PG) (U ι PG))))
