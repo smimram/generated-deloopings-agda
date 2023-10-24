@@ -38,8 +38,17 @@ record GSetStr (G : Group ℓ) (X : Type ℓ) : Type ℓ where
 
 unquoteDecl GSetStrIsoΣ = declareRecordIsoΣ GSetStrIsoΣ (quote GSetStr)
 
--- preserves-inv : (G : Group ℓ) (X : Type ℓ) (F : Action G X) (a : ⟨ G ⟩) (x : X) → F .Action._*_ (str G .GroupStr.inv a) x ≡ {!F!}
--- preserves-inv G X F = {!!}
+-- useful lemma to show the action of inverses
+act-inv : {G : Group ℓ} {X : Type ℓ} (F : Action G X) {a : ⟨ G ⟩} {x y : X} → x ≡ F .Action._*_ a y → F .Action._*_ (str G .GroupStr.inv a) x ≡ y
+act-inv {G = G} F {a} {x} {y} p =
+  inv a * x       ≡⟨ cong (λ x → inv a * x) p ⟩
+  inv a * (a * y) ≡⟨ ·Composition (inv a) a y ⟩
+  (inv a · a) * y ≡⟨ cong (λ x → x * y) (·InvL a) ⟩
+  1g * y          ≡⟨ ·Unit y ⟩
+  y               ∎
+  where
+  open GroupStr (str G)
+  open Action F
 
 GSet : {ℓ : Level} → Group ℓ → Type (ℓ-suc ℓ)
 GSet {ℓ} G = TypeWithStr ℓ (GSetStr G)
