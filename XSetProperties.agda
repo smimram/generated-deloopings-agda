@@ -106,35 +106,39 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       open Action
       ι* = ι-star-hom .fst
       α = str PG .ϕ
+      [α] = α ._*_
       isSetG : isSet ⟨ G ⟩
       isSetG = α .is-set
-      comm : (x : ⟨ G ⟩) (a : ⟨ PG ⟩) → transport p ((α * x) a) ≡ (α * x) (transport p a)
+      comm : (x : ⟨ G ⟩) (a : ⟨ PG ⟩) → transport p ([α] x a) ≡ [α] x (transport p a)
       comm x a = PT.rec (isSetG _ _) (λ { (u , r) → comm' u r }) s
         where
         s : ∥ Σ (FreeGroup ⟨ X ⟩) (λ u → ι* u ≡ x) ∥₁
         s = generates x
-        comm* : (u : FreeGroup ⟨ X ⟩) → (a : ⟨ PG ⟩) → transport p ((α * (ι* u)) a) ≡ (α * (ι* u)) (transport p a)
+        comm* : (u : FreeGroup ⟨ X ⟩) → (a : ⟨ PG ⟩) → transport p ([α] (ι* u) a) ≡ [α] (ι* u) (transport p a)
         comm* = FG.elimProp
           (λ u → isPropΠ λ _ → isSetG _ _)
           (λ x a →
-            transport p ((α * ι* (η x)) a) ≡⟨ {!!} ⟩ -- ι* is an extension of ι
-            transport p ((α * ι x) a) ≡⟨ refl ⟩ -- property of U
-            transport p (str (U ι PG) .XSetStr.ϕ .SetAction._*_ x a) ≡⟨ q x a ⟩
-            str (U ι PG) .XSetStr.ϕ .SetAction._*_ x (transport p a) ≡⟨ refl ⟩ --property of U
-            (α * ι* (η x)) (transport p a) ∎
+            transport p ([α] (ι* (η x)) a) ≡⟨ {!!} ⟩ -- ι* is an extension of ι
+            transport p ([α] (ι x) a) ≡⟨ refl ⟩ -- property of U
+            transport p (str (U {X = X} ι PG) .XSetStr.ϕ .SetAction._*_ x a) ≡⟨ q x a ⟩
+            str (U {X = X} ι PG) .XSetStr.ϕ .SetAction._*_ x (transport p a) ≡⟨ refl ⟩ --property of U
+            [α] (ι* (η x)) (transport p a) ∎
           )
           (λ u v q r a →
-            transport p ((α * ι* (u ·f v)) a) ≡⟨ {!!} ⟩ -- morphism of groups
-            transport p ((α * (ι* u · ι* v)) a) ≡⟨ {!!} ⟩ -- α action
-            transport p ((α * (ι* u)) ((α * (ι* v)) a)) ≡⟨ q _ ⟩
-            (α * ι* u) (transport p ((α * (ι* v)) a)) ≡⟨ cong (α * ι* u) (r _) ⟩
-            (α * ι* u) ((α * ι* v) (transport p a)) ≡⟨ {!!} ⟩ -- morphism of groups
-            (α * ι* (u ·f v)) (transport p a) ∎
+            transport p ([α] (ι* (u ·f v)) a) ≡⟨ {!!} ⟩ -- morphism of groups
+            transport p ([α] (ι* u · ι* v) a) ≡⟨ {!!} ⟩ -- α action
+            transport p ([α] (ι* u) ([α] (ι* v) a)) ≡⟨ q _ ⟩
+            [α] (ι* u) (transport p ([α] (ι* v) a)) ≡⟨ cong ([α] (ι* u)) (r _) ⟩
+            [α] (ι* u) ([α] (ι* v) (transport p a)) ≡⟨ {!!} ⟩ -- morphism of groups
+            [α] (ι* (u ·f v)) (transport p a) ∎
           )
-          {!!}
-          {!!}
-        comm' : (u : FreeGroup ⟨ X ⟩) → ι* u ≡ x → transport p ((α * x) a) ≡ (α * x) (transport p a)
-        comm' u q = subst (λ x → transport p ((α * x) a) ≡ (α * x) (transport p a)) q (comm* u a)
+          (λ a →
+            transport p ([α] (ι* ε) a) ≡⟨ {!!} ⟩
+            [α] (ι* ε) (transport p a) ∎
+          )
+          (λ x q a → {!!})
+        comm' : (u : FreeGroup ⟨ X ⟩) → ι* u ≡ x → transport p ([α] x a) ≡ [α] x (transport p a)
+        comm' u q = subst (λ x → transport p ([α] x a) ≡ [α] x (transport p a)) q (comm* u a)
     Iso.rightInv isoΣ = {!!}
     Iso.leftInv isoΣ = {!!}
 
