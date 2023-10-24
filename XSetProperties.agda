@@ -18,6 +18,7 @@ open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.FreeGroup renaming (_·_ to _·f_)
 open import Cubical.Data.Sigma
 
+open import Base
 open import XSet
 open import GSet
 open import GSetProperties
@@ -54,7 +55,7 @@ XSet≡ {X = X} {A = A} {B = B} =
   A ≡ B ≃⟨ cong (equivFun XSetΣ) , isEquiv→isEmbedding (snd XSetΣ) A B ⟩
   A' ≡ B' ≃⟨ invEquiv (ΣPathTransport≃PathΣ A' B') ⟩
   Σ (⟨ A ⟩ ≡ ⟨ B ⟩) (λ p → subst (λ A → (⟨ X ⟩ → A → A) × isSet A) p (snd A') ≡ snd B') ≃⟨ Σ-cong-equiv-snd (λ p → invEquiv (Σ≡PropEquiv λ _ → isPropIsSet)) ⟩
-  Σ (⟨ A ⟩ ≡ ⟨ B ⟩) (λ p → subst (λ A → (⟨ X ⟩ → A → A)) p fA ≡ fB) ≃⟨ Σ-cong-equiv-snd (λ p → pathToEquiv (lem p)) ⟩ -- funTypeTransp -- compEquiv (pathToEquiv {!fromPathP (funTypeTransp ? ? ? ?)!}) {!!})
+  Σ (⟨ A ⟩ ≡ ⟨ B ⟩) (λ p → subst (λ A → (⟨ X ⟩ → A → A)) p fA ≡ fB) ≃⟨ Σ-cong-equiv-snd (λ p → pathToEquiv (lem p)) ⟩
   (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a))) ■
   where
     open XSetStr
@@ -65,8 +66,14 @@ XSet≡ {X = X} {A = A} {B = B} =
     fB = str B .ϕ ._*_
     lem  = λ (p : ⟨ A ⟩ ≡ ⟨ B ⟩) →
       subst (λ A → ⟨ X ⟩ → A → A) p fA ≡ fB ≡⟨ refl ⟩
-      transport (cong (λ A → ⟨ X ⟩ → A → A) p) fA ≡ fB ≡⟨ {!fromPathP (funTypeTransp ? ? ? ?)!} ⟩
-      {!!} ≡⟨ {!!} ⟩
+      transport (cong (λ A → ⟨ X ⟩ → A → A) p) fA ≡ fB ≡⟨ ua (compLEquiv (sym (fromPathP (funTypeTransp (λ _ → ⟨ X ⟩) (λ A → A → A) p fA)))) ⟩
+      subst (λ A → A → A) p ∘ fA ∘ subst (λ _ → ⟨ X ⟩) (sym p) ≡ fB ≡⟨ refl ⟩
+      subst (λ A → A → A) p ∘ fA ∘ transport refl ≡ fB ≡⟨ {!!} ⟩ -- transportRefl
+      subst (λ A → A → A) p ∘ fA ≡ fB ≡⟨ ua (compLEquiv (sym (funExt λ x → sym (fromPathP (funTypeTransp (λ A → A) (λ A → A) p (fA x)))))) ⟩
+      (λ x → subst (λ A → A) p ∘ fA x ∘ subst (λ A → A) (sym p)) ≡ fB ≡⟨ refl ⟩
+      (λ x → transport p ∘ fA x ∘ transport (sym p)) ≡ fB ≡⟨ sym (ua funExt≃) ⟩
+      ((x : ⟨ X ⟩) → transport p ∘ fA x ∘ transport (sym p) ≡ fB x) ≡⟨ ua (equivΠCod (λ x → invEquiv funExt≃)) ⟩
+      ((x : ⟨ X ⟩) (b : ⟨ B ⟩) → transport p (fA x (transport (sym p) b)) ≡ fB x b) ≡⟨ {!!} ⟩ -- precomposition by transport p
       ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((ϕ (str A) * x) a) ≡ (ϕ (str B) * x) (transport p a)) ∎
 
 postulate
