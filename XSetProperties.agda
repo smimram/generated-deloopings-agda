@@ -109,28 +109,30 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       isSetG : isSet ⟨ G ⟩
       isSetG = α .is-set
       comm : (x : ⟨ G ⟩) (a : ⟨ PG ⟩) → transport p ((α * x) a) ≡ (α * x) (transport p a)
-      comm x a = PT.rec (isSetG _ _) (λ { (u , r) → {!!} }) s
+      comm x a = PT.rec (isSetG _ _) (λ { (u , r) → comm' u r a }) s
         where
         s : ∥ Σ (FreeGroup ⟨ X ⟩) (λ u → ι* u ≡ x) ∥₁
         s = generates x
-        comm' : (u : FreeGroup ⟨ X ⟩) → ι* u ≡ x → transport p ((α * x) a) ≡ (α * x) (transport p a)
+        comm' : (u : FreeGroup ⟨ X ⟩) → ι* u ≡ x → (a : ⟨ PG ⟩) → transport p ((α * x) a) ≡ (α * x) (transport p a)
         comm' = FG.elimProp
-          (λ _ → isPropΠ λ _ → isSetG _ _)
-          (λ y r →
+          (λ _ → isPropΠ λ _ → isPropΠ λ _ → isSetG _ _)
+          (λ y r a →
             transport p ((α * x) a) ≡⟨ {!!} ⟩ -- by r
             transport p ((α * ι* (η y)) a) ≡⟨ {!!} ⟩ -- ι* is an extension of ι
             transport p ((α * ι y) a) ≡⟨ refl ⟩ -- property of U
             transport p ((XSetStr.ϕ (str (U {X = X} ι PG)) SetAction.* y) a) ≡⟨ q y a ⟩
             (XSetStr.ϕ (str (U {X = X} ι PG)) SetAction.* y) (transport p a) ≡⟨ refl ⟩ -- property of U
             (α * (ι y)) (transport p a) ≡⟨ {!!} ⟩ -- by r
-            (α * x) (transport p a) ∎)
-          (λ u v r s t →
+            (α * x) (transport p a) ∎
+          )
+          (λ u v r s t a →
             transport p ((α * x) a) ≡⟨ {!!} ⟩ -- by t
             transport p ((α * ι* (u ·f v)) a) ≡⟨ {!!} ⟩ -- ι* morphism of groups
             transport p ((α * (ι* u · ι* v)) a) ≡⟨ {!!} ⟩ -- α action
-            transport p ((α * (ι* u)) ((α * (ι* v)) a)) ≡⟨ {!!} ⟩
+            transport p ((α * (ι* u)) ((α * (ι* v)) a)) ≡⟨ {!r!} ⟩
             {!transport p ((α * (ι* u)) ((α * (ι* v)) a))!} ≡⟨ {!!} ⟩
-            (α * x) (transport p a) ∎)
+            (α * x) (transport p a) ∎
+          )
           {!!}
           {!!}
     Iso.rightInv isoΣ = {!!}
