@@ -14,7 +14,7 @@ open import Cubical.Functions.Embedding
 open import Cubical.Algebra.Group
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Homotopy.Loopspace
-open import Cubical.HITs.PropositionalTruncation
+open import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.HITs.FreeGroup renaming (_·_ to _·f_)
 open import Cubical.Data.Sigma
 
@@ -108,7 +108,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       p = fst t
       comm = snd t
       comm-star : (g : ⟨ G ⟩) → (a : ⟨ G ⟩) → (transport p (g · a)) ≡ (g · (transport p a))
-      comm-star g = Cubical.HITs.PropositionalTruncation.rec (theorem1 {G = G} {A = PG} {B = PG} {p = p} {g = g}) lem (generates g)
+      comm-star g = PT.rec (theorem1 {G = G} {A = PG} {B = PG} {p = p} {g = g}) lem (generates g)
         where
         lem : (Σ (FreeGroup ⟨ X ⟩) λ x → (ι-star-hom .fst x ≡ g)) → ((a : ⟨ G ⟩) → transport p (g · a) ≡ g · (transport p a))
         lem (x , prf) a =
@@ -117,8 +117,8 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
           (ι-star-hom .fst x) · (transport p a)      ≡⟨ cong (λ y → y · (transport p a)) prf ⟩
           g · (transport p a) ∎
     Iso.rightInv thm eq = sym (
-      eq ≡⟨ {!!} ⟩
-      (invEq splitXSet≡) (equivFun splitXSet≡ eq) ≡⟨ {!!} ⟩
+      eq ≡⟨ sym (retEq splitXSet≡ eq) ⟩
+      (invEq splitXSet≡) (equivFun splitXSet≡ eq) ≡⟨ refl ⟩
       (invEq splitXSet≡) (p , com) ≡⟨ {!!} ⟩
       (Iso.fun thm) (Iso.inv thm eq) ∎)
         where
