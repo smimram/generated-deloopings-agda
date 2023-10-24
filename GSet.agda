@@ -38,5 +38,8 @@ record GSetStr (G : Group ℓ) (X : Type ℓ) : Type ℓ where
 
 unquoteDecl GSetStrIsoΣ = declareRecordIsoΣ GSetStrIsoΣ (quote GSetStr)
 
+-- preserves-inv : (G : Group ℓ) (X : Type ℓ) (F : Action G X) (a : ⟨ G ⟩) (x : X) → F .Action._*_ (str G .GroupStr.inv a) x ≡ {!F!}
+-- preserves-inv G X F = {!!}
+
 GSet : {ℓ : Level} → Group ℓ → Type (ℓ-suc ℓ)
 GSet {ℓ} G = TypeWithStr ℓ (GSetStr G)
