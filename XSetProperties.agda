@@ -7,7 +7,7 @@
 
   -}
 
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 
 open import Cubical.Foundations.Everything
 open import Cubical.Functions.Embedding
@@ -60,6 +60,13 @@ XSet≃Σ {ℓ = ℓ} {X = X} = isoToEquiv e
 XSet≡Σ : {X : hSet ℓ} (A B : XSet X) → Type _
 XSet≡Σ {X = X} A B = (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a)))
 
+symTransport : {A B : Type ℓ} {p : A ≡ B} {b : B} → transport p (transport (sym p) b) ≡ b
+symTransport {A = A} {B = B} {p = p} {b = b} =
+  transport p (transport (sym p) b) ≡⟨ sym (transportComposite (sym p) p b )⟩
+  transport ((sym p) ∙ p) b ≡⟨ cong (λ x → transport x b) (lCancel p) ⟩
+  transport (refl) b ≡⟨ transportRefl b ⟩
+  b ∎
+
 XSet≡≃Σ : {X : hSet ℓ} (A B : XSet X) → (A ≡ B) ≃ XSet≡Σ A B
 XSet≡≃Σ {X = X} A B =
   A ≡ B ≃⟨ cong (equivFun XSet≃Σ) , isEquiv→isEmbedding (snd XSet≃Σ) A B ⟩
@@ -76,14 +83,14 @@ XSet≡≃Σ {X = X} A B =
     fB = str B .ϕ ._*_
     lem  = λ (p : ⟨ A ⟩ ≡ ⟨ B ⟩) →
       subst (λ A → ⟨ X ⟩ → A → A) p fA ≡ fB ≡⟨ refl ⟩
-      transport (cong (λ A → ⟨ X ⟩ → A → A) p) fA ≡ fB ≡⟨ ua (compLEquiv (sym (fromPathP (funTypeTransp (λ _ → ⟨ X ⟩) (λ A → A → A) p fA)))) ⟩
+      transport (cong (λ A → ⟨ X ⟩ → A → A) p) fA ≡ fB ≡⟨ ua (compPathlEquiv (sym (fromPathP (funTypeTransp (λ _ → ⟨ X ⟩) (λ A → A → A) p fA)))) ⟩
       subst (λ A → A → A) p ∘ fA ∘ subst (λ _ → ⟨ X ⟩) (sym p) ≡ fB ≡⟨ refl ⟩
-      subst (λ A → A → A) p ∘ fA ∘ transport refl ≡ fB ≡⟨ ua (compLEquiv {z = fB} (cong (λ x → subst (λ A → A → A) p ∘ x) (funExt {f = fA} {g = fA ∘ transport refl} λ x → cong fA (sym (transportRefl x))))) ⟩ -- transportRefl
-      subst (λ A → A → A) p ∘ fA ≡ fB ≡⟨ ua (compLEquiv (sym (funExt λ x → sym (fromPathP (funTypeTransp (λ A → A) (λ A → A) p (fA x)))))) ⟩
+      subst (λ A → A → A) p ∘ fA ∘ transport refl ≡ fB ≡⟨ ua (compPathlEquiv {z = fB} (cong (λ x → subst (λ A → A → A) p ∘ x) (funExt {f = fA} {g = fA ∘ transport refl} λ x → cong fA (sym (transportRefl x))))) ⟩ -- transportRefl
+      subst (λ A → A → A) p ∘ fA ≡ fB ≡⟨ ua (compPathlEquiv (sym (funExt λ x → sym (fromPathP (funTypeTransp (λ A → A) (λ A → A) p (fA x)))))) ⟩
       (λ x → subst (λ A → A) p ∘ fA x ∘ subst (λ A → A) (sym p)) ≡ fB ≡⟨ refl ⟩
       (λ x → transport p ∘ fA x ∘ transport (sym p)) ≡ fB ≡⟨ sym (ua funExt≃) ⟩
       ((x : ⟨ X ⟩) → transport p ∘ fA x ∘ transport (sym p) ≡ fB x) ≡⟨ ua (equivΠCod (λ x → invEquiv funExt≃)) ⟩
-      ((x : ⟨ X ⟩) (b : ⟨ B ⟩) → transport p (fA x (transport (sym p) b)) ≡ fB x b) ≡⟨ {!!} ⟩ -- precomposition by transport p
+      ((x : ⟨ X ⟩) (b : ⟨ B ⟩) → transport p (fA x (transport (sym p) b)) ≡ fB x b) ≡⟨ ua (equivΠCod λ x → equivΠ (pathToEquiv (sym p)) λ b → invEquiv (compPathrEquiv (cong (fB x) (symTransport {p = p}))) ) ⟩ -- precomposition by transport p
       ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((ϕ (str A) * x) a) ≡ (ϕ (str B) * x) (transport p a)) ∎
 
 GSet≡Σ : {G : Group ℓ} (A B : GSet G) → Type _
