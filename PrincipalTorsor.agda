@@ -3,7 +3,6 @@
   This file contains:
 
   - Definition of the principal torsor of a group
-  - Caracterisation of its Aut group
 
   -}
 

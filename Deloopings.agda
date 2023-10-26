@@ -8,10 +8,11 @@
 
   -}
 
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 
 open import Cubical.Foundations.Everything
 open import Cubical.Foundations.Univalence
+open import Cubical.Foundations.GroupoidLaws
 open import Cubical.Functions.Embedding
 open import Cubical.Algebra.Group
 open import Cubical.Algebra.Group.Morphisms
@@ -50,6 +51,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
 
   BG' : Pointed (ℓ-suc ℓ)
   BG' = Comp (XSet X , PX)
+
 
   PGloops : GroupIso (π₁ (GSet G , PG) (isGroupoidGSet G)) G
   PGloops = e , gh
@@ -104,21 +106,32 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       transport (cong fst p ∙ cong fst q) 1g ≡⟨ transportComposite (cong fst p) (cong fst q) 1g ⟩
       transport (cong fst q) (transport (cong fst p) 1g) ≡⟨ refl ⟩
       transport (cong fst q) (f p) ≡⟨ cong (transport (cong fst q)) (sym (·IdR (f p))) ⟩
-      transport (cong fst q) (f p · 1g) ≡⟨ {!!} ⟩ -- naturality (generalization of qNat)
+      transport (cong fst q) (f p · 1g) ≡⟨ sym (naturality q _ _) ⟩ -- naturality (generalization of qNat)
       f p · transport (cong fst q) 1g ≡⟨ refl ⟩
       f p · f q ∎
+        where
+        naturality : (p : PG ≡ PG) (x y : ⟨ G ⟩) → x · transport (cong fst p) y ≡ transport (cong fst p) (x · y)
+        naturality p x y = sym (equivFun GSetPath' p .snd .IsGSetHom.pres* x y)
     pres1 gh =
       f (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G)))) ≡⟨ refl ⟩
       transport (cong fst (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G))))) 1g ≡⟨ refl ⟩
       transport (cong fst (refl {x = PG {G = G}})) 1g ≡⟨ refl ⟩
       transport (refl {x = ⟨ G ⟩}) 1g ≡⟨ transportRefl 1g ⟩
       1g ∎
-    presinv gh p =
-      f (GroupStr.inv (str (π₁ (GSet G , PG) (isGroupoidGSet G))) p) ≡⟨ refl ⟩
-      f (sym p) ≡⟨ refl ⟩
-      transport (cong fst (sym p)) 1g ≡⟨ refl ⟩
-      transport (sym (cong fst p)) 1g ≡⟨ {!!} ⟩ -- inverse by naturality too
-      GroupStr.inv (str G) (f p) ∎
+    presinv gh p = GroupTheory.invUniqueL G {g = f (sym p)} {h = f p} (
+      f (sym p) · (f p) ≡⟨ refl ⟩
+      f (sym p) · (transport (cong fst p) 1g) ≡⟨ naturality p (f (sym p)) 1g ⟩
+      transport (cong fst p) (f (sym p) · 1g) ≡⟨ cong (λ x → transport (cong fst p) x) ((str G .GroupStr.·IdR) (f (sym p)))  ⟩
+      transport (cong fst p) (f (sym p)) ≡⟨ refl ⟩
+      transport (cong fst p) (transport (cong fst (sym p)) 1g) ≡⟨ sym (transportComposite (cong fst (sym p)) (cong fst p) 1g) ⟩
+      transport ((cong fst (sym p)) ∙ (cong fst p)) 1g ≡⟨ refl ⟩
+      transport ((sym (cong fst p)) ∙ (cong fst p)) 1g ≡⟨ cong (λ x → transport x 1g) (lCancel (cong fst p)) ⟩
+      transport (refl) 1g ≡⟨ transportRefl 1g ⟩
+      1g ∎)
+        where
+        naturality : (p : PG {G = G} ≡ PG) (x y : ⟨ G ⟩) → x · transport (cong fst p) y ≡ transport (cong fst p) (x · y)
+        naturality p x y = sym (equivFun GSetPath' p .snd .IsGSetHom.pres* x y)
+
 
   torsorDeloops : GroupIso (π₁ BG isGroupoidBG) G
   torsorDeloops = compGroupIso {G = π₁ BG isGroupoidBG} (π₁Comp (GSet G , PG) (isGroupoidGSet G)) PGloops
