@@ -123,10 +123,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       f (sym p) · (transport (cong fst p) 1g) ≡⟨ naturality p (f (sym p)) 1g ⟩
       transport (cong fst p) (f (sym p) · 1g) ≡⟨ cong (λ x → transport (cong fst p) x) ((str G .GroupStr.·IdR) (f (sym p)))  ⟩
       transport (cong fst p) (f (sym p)) ≡⟨ refl ⟩
-      transport (cong fst p) (transport (cong fst (sym p)) 1g) ≡⟨ sym (transportComposite (cong fst (sym p)) (cong fst p) 1g) ⟩
-      transport ((cong fst (sym p)) ∙ (cong fst p)) 1g ≡⟨ refl ⟩
-      transport ((sym (cong fst p)) ∙ (cong fst p)) 1g ≡⟨ cong (λ x → transport x 1g) (lCancel (cong fst p)) ⟩
-      transport (refl) 1g ≡⟨ transportRefl 1g ⟩
+      transport (cong fst p) (transport (cong fst (sym p)) 1g) ≡⟨ symTransport {p = cong fst p} ⟩
       1g ∎)
         where
         naturality : (p : PG {G = G} ≡ PG) (x y : ⟨ G ⟩) → x · transport (cong fst p) y ≡ transport (cong fst p) (x · y)
