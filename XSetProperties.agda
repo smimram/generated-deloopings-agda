@@ -78,7 +78,7 @@ XSet≡≃Σ {X = X} A B =
       subst (λ A → ⟨ X ⟩ → A → A) p fA ≡ fB ≡⟨ refl ⟩
       transport (cong (λ A → ⟨ X ⟩ → A → A) p) fA ≡ fB ≡⟨ ua (compLEquiv (sym (fromPathP (funTypeTransp (λ _ → ⟨ X ⟩) (λ A → A → A) p fA)))) ⟩
       subst (λ A → A → A) p ∘ fA ∘ subst (λ _ → ⟨ X ⟩) (sym p) ≡ fB ≡⟨ refl ⟩
-      subst (λ A → A → A) p ∘ fA ∘ transport refl ≡ fB ≡⟨ {!!} ⟩ -- transportRefl
+      subst (λ A → A → A) p ∘ fA ∘ transport refl ≡ fB ≡⟨ ua (compLEquiv {z = fB} (cong (λ x → subst (λ A → A → A) p ∘ x) (funExt {f = fA} {g = fA ∘ transport refl} λ x → cong fA (sym (transportRefl x))))) ⟩ -- transportRefl
       subst (λ A → A → A) p ∘ fA ≡ fB ≡⟨ ua (compLEquiv (sym (funExt λ x → sym (fromPathP (funTypeTransp (λ A → A) (λ A → A) p (fA x)))))) ⟩
       (λ x → subst (λ A → A) p ∘ fA x ∘ subst (λ A → A) (sym p)) ≡ fB ≡⟨ refl ⟩
       (λ x → transport p ∘ fA x ∘ transport (sym p)) ≡ fB ≡⟨ sym (ua funExt≃) ⟩
