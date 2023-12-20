@@ -70,8 +70,19 @@ module _ {G : Group ℓ} where
   GSetIdEquiv : (X : GSet G) → GSetEquiv X X
   GSetIdEquiv X = idEquiv ⟨ X ⟩ , makeIsGSetEquiv λ x y → refl
 
+  -- idToGSetEquiv : {X Y : GSet G} → X ≡ Y → GSetEquiv X Y
+  -- -- J (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
+  -- idToGSetEquiv {X = X} {Y = Y} p = pathToEquiv (cong fst p) , record { pres* = compat }
+    -- where
+    -- open GSetStr
+    -- -- TODO: should be somewhere in the standard library...
+    -- lem : {A B : Set ℓ} (f : (A : Set ℓ) → A → A) (p : A ≡ B) (x : A) → transport p (f A x) ≡ f B (transport p x)
+    -- lem {A = A} f p x = J (λ B p → (x : A) → transport p (f A x) ≡ f B (transport p x)) (λ x → transportRefl _ ∙ cong (f A) (sym (transportRefl _))) p x
+    -- compat : (g : ⟨ G ⟩) (x : typ X) → transport (cong fst p) ((str X * g) x) ≡ (str Y * g) (transport (cong fst p) x)
+    -- compat g x = lem (λ X → {!⟨ X ⟩ * g!}) (cong fst p) x
+
   idToGSetEquiv : {X Y : GSet G} → X ≡ Y → GSetEquiv X Y
-  idToGSetEquiv {X = X} = J (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
+  idToGSetEquiv {X = X} {Y = Y} = J (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
 
   idToGSetIdEquivRefl : {X : GSet G} → idToGSetEquiv refl ≡ GSetIdEquiv X
   idToGSetIdEquivRefl {X = X} = JRefl (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
