@@ -63,9 +63,9 @@ XSet≡Σ {X = X} A B = (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) 
 symTransport : {A B : Type ℓ} {p : A ≡ B} {b : B} → transport p (transport (sym p) b) ≡ b
 symTransport {A = A} {B = B} {p = p} {b = b} =
   transport p (transport (sym p) b) ≡⟨ sym (transportComposite (sym p) p b )⟩
-  transport ((sym p) ∙ p) b ≡⟨ cong (λ x → transport x b) (lCancel p) ⟩
-  transport (refl) b ≡⟨ transportRefl b ⟩
-  b ∎
+  transport ((sym p) ∙ p) b         ≡⟨ cong (λ x → transport x b) (lCancel p) ⟩
+  transport (refl) b                ≡⟨ transportRefl b ⟩
+  b                                 ∎
 
 XSet≡≃Σ : {X : hSet ℓ} (A B : XSet X) → (A ≡ B) ≃ XSet≡Σ A B
 XSet≡≃Σ {X = X} A B =
