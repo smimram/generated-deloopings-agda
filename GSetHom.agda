@@ -89,8 +89,38 @@ module _ {G : Group ℓ} where
   GSetEquiv≡ : {X Y : GSet G} {f g : GSetEquiv X Y} → equivFun (fst f) ≡ equivFun (fst g) → f ≡ g
   GSetEquiv≡ p = Σ≡Prop (λ _ → isPropIsGSetHom) (Σ≡Prop isPropIsEquiv p)
 
+  GSetPath : (X Y : GSet G) → (GSetEquiv X Y) ≃ (X ≡ Y)
+  GSetPath X Y = ∫ 𝒮ᴰ-GSet .UARel.ua X Y
+    where
+    open import Cubical.Displayed.Base
+    open import Cubical.Displayed.Universe
+    open import Cubical.Displayed.Record
+    open import Cubical.Displayed.Auto
+
+    𝒮ᴰ-GSet : DUARel (𝒮-Univ ℓ) (GSetStr G) ℓ
+    𝒮ᴰ-GSet = 𝒮ᴰ-Record (𝒮-Univ _) isGSetEquiv (fields: data[ ϕ ∣ autoDUARel _ _ ∣ {!compat!} ])
+      where
+      open GSetStr
+      open IsGSetHom
+      -- (GSetHom.autoDUA DUARel.≅ᴰ⟨ ϕ r ⟩ e) (ϕ r')
+      --  PathP
+      -- (λ i →
+         -- Action G
+         -- (Agda.Builtin.Cubical.Glue.primGlue a
+          -- (λ .x → (λ { (i = i0) → a , e ; (i = i1) → a , idEquiv a }) _ .fst)
+          -- (λ .x →
+             -- (λ { (i = i0) → a , e ; (i = i1) → a , idEquiv a }) _ .snd)))
+      -- (ϕ r) (ϕ r')
+      compat : {X X' : Type ℓ} {r : GSetStr G X} {e : X ≃ X'} {r' : GSetStr G X'} → isGSetEquiv r e r' → PathP {!!} (ϕ r) (ϕ r') 
+      compat = {!pres*!}
+
   GSetUnivalence : {X Y : GSet G} → isEquiv (idToGSetEquiv {X = X} {Y = Y})
-  GSetUnivalence = {!!}
+  GSetUnivalence {X} {Y} = {!!}
+    where
+    lem : (X ≡ Y) ≃ GSetEquiv X Y
+    lem =
+      X ≡ Y ≃⟨ {!!} ⟩
+      GSetEquiv X Y ■
 
   GSetUA : {X Y : GSet G} → GSetEquiv X Y → X ≡ Y
   GSetUA {X} {Y} = invEq (_ , GSetUnivalence {X = X} {Y = Y})

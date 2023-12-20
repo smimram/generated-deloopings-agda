@@ -29,8 +29,7 @@ record Action (G : Group ℓ) (X : Type ℓ) : Type ℓ where
 unquoteDecl ActionIsoΣ = declareRecordIsoΣ ActionIsoΣ (quote Action)
 
 record GSetStr (G : Group ℓ) (X : Type ℓ) : Type ℓ where
-  constructor
-    gsetstr
+  constructor gsetstr
   field
     ϕ : Action {ℓ} G X
 
