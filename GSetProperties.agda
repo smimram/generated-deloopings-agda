@@ -11,6 +11,8 @@
 
 {-# OPTIONS --cubical #-}
 
+module GSetProperties where
+
 open import Cubical.Foundations.Everything
 open import Cubical.Algebra.Group
 open import Cubical.Data.Sigma
@@ -35,7 +37,6 @@ equalActions {G} {X} ϕ ψ refl =  isoFunInjective  ActionIsoΣ ϕ ψ
 
 equalGSetStructures : {G : Group ℓ} {X : Type ℓ} (A B : GSetStr G X) → A .GSetStr._*_ ≡ B .GSetStr._*_ → A ≡ B
 equalGSetStructures A B p = isoFunInjective GSetStrIsoΣ A B (equalActions _ _ p)
-
 
 -- Use of this should be replaced by isPropIsGSetHom
 equalIsGSetHom : {G : Group ℓ} {X Y : GSet G} {f : ⟨ X ⟩ → ⟨ Y ⟩} (hom hom' : IsGSetHom (str X) f (str Y)) → hom .IsGSetHom.pres* ≡ hom' .IsGSetHom.pres* → hom ≡ hom'
@@ -81,7 +82,6 @@ decomposedEqualGSet {G = G} {A = A} = Σ (Σ (Type _) λ B → ⟨ A ⟩ ≃ B) 
 -- theorem : {G : Group ℓ} {A B : GSet ℓ G} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((g : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a)))
 -- theorem {G = G} {A = A} {B = B} = compEquiv (invEquiv ΣPath≃PathΣ) {!!}
 
-
 GSetPath : {G : Group ℓ} {X Y : GSet G} → (X ≡ Y) ≃ (GSetEquiv X Y)
 GSetPath {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetEquiv {X = A}) contr X Y
   where
@@ -117,9 +117,9 @@ GSetPath {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetEq
         SB' = isOfHLevelRespectEquiv 2 e SA
         unit' : (x : B) → (1g *' x) ≡ x
         unit' x =
-          f (1g * (f⁻  x)) ≡⟨ cong (equivFun e) (·Unit _)  ⟩
-          f (f⁻  x) ≡⟨ secEq e x ⟩
-          x ∎
+          f (1g * (f⁻ x)) ≡⟨ cong (equivFun e) (·Unit _)  ⟩
+          f (f⁻ x)        ≡⟨ secEq e x ⟩
+          x               ∎
         comp' : (g1 g2 : ⟨ G ⟩) (x : B) → g1 *' (g2 *' x) ≡ (g1 · g2) *' x
         comp' g1 g2 x =
            f (g1 * (f⁻  (f (g2 * (f⁻  x))))) ≡⟨ cong (λ y → f (g1 * y)) (retEq e _) ⟩
@@ -148,14 +148,28 @@ GSetPath {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetEq
 GSetPathFst : {G : Group ℓ} {X Y : GSet G} (p : X ≡ Y) → equivFun GSetPath p .fst ≡ pathToEquiv (cong fst p)
 GSetPathFst {X = X} = idToGSetEquivFst
 
--- variant of the above where the equivalence is definitionally cong fst p
+-- variant of the above where the equivalence is definitionally idToGSetEquiv
 GSetPath' : {G : Group ℓ} {X Y : GSet G} → (X ≡ Y) ≃ (GSetEquiv X Y)
-GSetPath' {G = G} {X = X} {Y = Y} = f , subst isEquiv eq (snd GSetPath)
+GSetPath' {G = G} {X = X} {Y = Y} = idToGSetEquiv , subst isEquiv eq (snd GSetPath)
   where
-  f : X ≡ Y → GSetEquiv X Y
-  f p = pathToEquiv (cong fst p) , subst (λ f → isGSetEquiv (str X) f (str Y)) (GSetPathFst p) (equivFun GSetPath p .snd)
-  eq : equivFun GSetPath ≡ f
-  eq = funExt λ p → Σ≡Prop (λ f → isPropIsGSetHom) (GSetPathFst p)
+  eq : equivFun GSetPath ≡ idToGSetEquiv
+  eq = funExt λ p → Σ≡Prop (λ _ → isPropIsGSetHom) (GSetPathFst p ∙ sym (idToGSetEquivFst p))
+
+-- univalence for GSets
+GSetUA : {G : Group ℓ} {X Y : GSet G} → GSetEquiv X Y → X ≡ Y
+GSetUA = invEq GSetPath'
+
+-- univalence for GSets extends the one on types
+GSetUAFst : {G : Group ℓ} {X Y : GSet G} (f : GSetEquiv X Y) → cong fst (GSetUA f) ≡ ua (fst f)
+GSetUAFst {G = G} {X = X} {Y = Y} f = isoFunInjective univalenceIso (cong fst (GSetUA f)) (ua (fst f)) {!lem!}
+  where
+  abstract
+    lem : pathToEquiv (cong fst (GSetUA f)) ≡ pathToEquiv (ua (fst f))
+    lem =
+      pathToEquiv (cong fst (GSetUA f)) ≡⟨ sym (idToGSetEquivFst (GSetUA f)) ⟩
+      fst (idToGSetEquiv (GSetUA f)) ≡⟨ cong fst (secEq GSetPath' f) ⟩
+      fst f ≡⟨ sym (secEq univalence (fst f)) ⟩
+      pathToEquiv (ua (fst f)) ∎
 
 isGroupoidGSet : (G : Group ℓ) → isGroupoid (GSet G)
 isGroupoidGSet G X Y = isOfHLevelRespectEquiv 2 (invEquiv GSetPath) (isSetΣ (isOfHLevel≃ 2 ((str X) .GSetStr.is-set) ((str Y) .GSetStr.is-set)) λ _ → isOfHLevelSuc 1 isPropIsGSetHom)
