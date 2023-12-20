@@ -7,7 +7,7 @@
 
 -}
 
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 
 open import Cubical.Foundations.Everything
 open import Cubical.Data.Sigma
@@ -56,11 +56,11 @@ module _ {G : Group ℓ} where
   GSetHom : (X Y : GSet G) → Type ℓ
   GSetHom X Y = Σ[ f ∈ (⟨ X ⟩ → ⟨ Y ⟩) ] IsGSetHom (str X) f (str Y)
 
-  isGSetEquiv : {X Y : Type ℓ} (M : GSetStr G X) (e : X ≃ Y) (N : GSetStr G Y) → Type ℓ
-  isGSetEquiv M e N = IsGSetHom M (e .fst) N
+  isGSetEquiv : {X Y : Type ℓ} (M : GSetStr G X) (N : GSetStr G Y) (e : X ≃ Y) → Type ℓ
+  isGSetEquiv M N e = IsGSetHom M (e .fst) N
 
   GSetEquiv : (X Y : GSet G) → Type ℓ
-  GSetEquiv X Y = Σ[ e ∈ (⟨ X ⟩ ≃ ⟨ Y ⟩) ] isGSetEquiv (str X) e (str Y)
+  GSetEquiv X Y = Σ[ e ∈ (⟨ X ⟩ ≃ ⟨ Y ⟩) ] isGSetEquiv (str X) (str Y) e
 
   makeIsGSetEquiv = makeIsGSetHom
 
@@ -70,83 +70,28 @@ module _ {G : Group ℓ} where
   GSetIdEquiv : (X : GSet G) → GSetEquiv X X
   GSetIdEquiv X = idEquiv ⟨ X ⟩ , makeIsGSetEquiv λ x y → refl
 
-  -- idToGSetEquiv : {X Y : GSet G} → X ≡ Y → GSetEquiv X Y
-  -- -- J (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
-  -- idToGSetEquiv {X = X} {Y = Y} p = pathToEquiv (cong fst p) , record { pres* = compat }
-    -- where
-    -- open GSetStr
-    -- -- TODO: should be somewhere in the standard library...
-    -- lem : {A B : Set ℓ} (f : (A : Set ℓ) → A → A) (p : A ≡ B) (x : A) → transport p (f A x) ≡ f B (transport p x)
-    -- lem {A = A} f p x = J (λ B p → (x : A) → transport p (f A x) ≡ f B (transport p x)) (λ x → transportRefl _ ∙ cong (f A) (sym (transportRefl _))) p x
-    -- compat : (g : ⟨ G ⟩) (x : typ X) → transport (cong fst p) ((str X * g) x) ≡ (str Y * g) (transport (cong fst p) x)
-    -- compat g x = lem (λ X → {!⟨ X ⟩ * g!}) (cong fst p) x
+  idToGSetEquiv' : {X Y : GSet G} → X ≡ Y → GSetEquiv X Y
+  idToGSetEquiv' {X = X} {Y = Y} = J (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
 
-  idToGSetEquiv : {X Y : GSet G} → X ≡ Y → GSetEquiv X Y
-  idToGSetEquiv {X = X} {Y = Y} = J (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
-
-  idToGSetIdEquivRefl : {X : GSet G} → idToGSetEquiv refl ≡ GSetIdEquiv X
-  idToGSetIdEquivRefl {X = X} = JRefl (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
+  idToGSetIdEquivRefl' : {X : GSet G} → idToGSetEquiv' refl ≡ GSetIdEquiv X
+  idToGSetIdEquivRefl' {X = X} = JRefl (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
 
   -- the underlying equivalence of idToGSetEquiv is pathToEquiv
-  idToGSetEquivFst : {X Y : GSet G} (p : X ≡ Y) → fst (idToGSetEquiv p) ≡ pathToEquiv (cong fst p)
-  idToGSetEquivFst {X} {Y} = J (λ Y p → fst (idToGSetEquiv p) ≡ pathToEquiv (cong fst p)) lem
+  idToGSetEquiv'Fst : {X Y : GSet G} (p : X ≡ Y) → fst (idToGSetEquiv' p) ≡ pathToEquiv (cong fst p)
+  idToGSetEquiv'Fst {X} {Y} = J (λ Y p → fst (idToGSetEquiv' p) ≡ pathToEquiv (cong fst p)) lem
     where
     lem =
-      fst (idToGSetEquiv {X = X} refl) ≡⟨ cong fst (idToGSetIdEquivRefl {X = X}) ⟩
+      fst (idToGSetEquiv' {X = X} refl) ≡⟨ cong fst (idToGSetIdEquivRefl' {X = X}) ⟩
       fst (GSetIdEquiv X)              ≡⟨ sym pathToEquivRefl ⟩
       pathToEquiv (refl {x = fst X})   ≡⟨ refl ⟩
       pathToEquiv (cong fst (refl {x = X})) ∎
 
+  -- variant with function X → Y being definitionaly pathToEquiv
+  idToGSetEquiv : {X Y : GSet G} → X ≡ Y → GSetEquiv X Y
+  idToGSetEquiv {X = X} p = pathToEquiv (cong fst p) , subst (isGSetEquiv _ _) (idToGSetEquiv'Fst p) (snd (idToGSetEquiv' p))
+
+  idToGSetEquivFst : {X Y : GSet G} (p : X ≡ Y) → fst (idToGSetEquiv p) ≡ pathToEquiv (cong fst p)
+  idToGSetEquivFst p = refl
+
   GSetEquiv≡ : {X Y : GSet G} {f g : GSetEquiv X Y} → equivFun (fst f) ≡ equivFun (fst g) → f ≡ g
   GSetEquiv≡ p = Σ≡Prop (λ _ → isPropIsGSetHom) (Σ≡Prop isPropIsEquiv p)
-
-  -- GSetPath : (X Y : GSet G) → (GSetEquiv X Y) ≃ (X ≡ Y)
-  -- GSetPath X Y = ∫ 𝒮ᴰ-GSet .UARel.ua X Y
-    -- where
-    -- open import Cubical.Displayed.Base
-    -- open import Cubical.Displayed.Universe
-    -- open import Cubical.Displayed.Record
-    -- open import Cubical.Displayed.Auto
-
-    -- 𝒮ᴰ-GSet : DUARel (𝒮-Univ ℓ) (GSetStr G) ℓ
-    -- 𝒮ᴰ-GSet = 𝒮ᴰ-Record (𝒮-Univ _) isGSetEquiv (fields: data[ ϕ ∣ autoDUARel _ _ ∣ {!compat!} ])
-      -- where
-      -- open GSetStr
-      -- open IsGSetHom
-      -- -- (GSetHom.autoDUA DUARel.≅ᴰ⟨ ϕ r ⟩ e) (ϕ r')
-      -- --  PathP
-      -- -- (λ i →
-         -- -- Action G
-         -- -- (Agda.Builtin.Cubical.Glue.primGlue a
-          -- -- (λ .x → (λ { (i = i0) → a , e ; (i = i1) → a , idEquiv a }) _ .fst)
-          -- -- (λ .x →
-             -- -- (λ { (i = i0) → a , e ; (i = i1) → a , idEquiv a }) _ .snd)))
-      -- -- (ϕ r) (ϕ r')
-      -- -- compat : {X X' : Type ℓ} {r : GSetStr G X} {e : X ≃ X'} {r' : GSetStr G X'} → isGSetEquiv r e r' → PathP {!ϕ r'!} (ϕ r) (ϕ r') 
-      -- compat = {!pres*!}
-
-  -- GSetUnivalence : {X Y : GSet G} → isEquiv (idToGSetEquiv {X = X} {Y = Y})
-  -- GSetUnivalence {X} {Y} = {!!}
-    -- where
-    -- lem : (X ≡ Y) ≃ GSetEquiv X Y
-    -- lem =
-      -- X ≡ Y ≃⟨ {!!} ⟩
-      -- GSetEquiv X Y ■
-
-  -- GSetUA : {X Y : GSet G} → GSetEquiv X Y → X ≡ Y
-  -- GSetUA {X} {Y} = invEq (_ , GSetUnivalence {X = X} {Y = Y})
-
-  -- GSetUAβ : {X Y : GSet G} (f : GSetEquiv X Y) → idToGSetEquiv (GSetUA f) ≡ f
-  -- GSetUAβ f = secEq (idToGSetEquiv , GSetUnivalence) f
-
-  -- GSetUAη : {X Y : GSet G} (p : X ≡ Y) → GSetUA (idToGSetEquiv p) ≡ p
-  -- GSetUAη p = retEq (idToGSetEquiv , GSetUnivalence) p
-
-  -- GSetUAFst : {X Y : GSet G} (f : GSetEquiv X Y) → cong fst (GSetUA f) ≡ ua (fst f)
-  -- GSetUAFst f = pathEq lem
-    -- where
-    -- lem =
-      -- transport (cong fst (GSetUA f)) ≡⟨ refl ⟩
-      -- subst fst (GSetUA f)            ≡⟨ {!!} ⟩
-      -- equivFun (fst f)                ≡⟨ sym (funExt (λ x → uaβ (fst f) x)) ⟩
-      -- transport (ua (fst f))          ∎

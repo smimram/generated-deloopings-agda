@@ -9,4 +9,4 @@ clean:
 	rm -f *.agdai
 
 %.agdai: %.agda
-	agda $<
+	agda --safe $<

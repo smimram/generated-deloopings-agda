@@ -146,7 +146,10 @@ GSetPath' {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetE
             g *'' x ∎
 
 GSetPath'Fst : {G : Group ℓ} {X Y : GSet G} (p : X ≡ Y) → equivFun GSetPath' p .fst ≡ pathToEquiv (cong fst p)
-GSetPath'Fst {X = X} = idToGSetEquivFst
+GSetPath'Fst {X = X} p = J (λ Y p → equivFun GSetPath' p .fst ≡ pathToEquiv (cong fst p)) lem p
+  where
+  lem : transport (λ i → ⟨ X ⟩ ≃ ⟨ X ⟩) (idEquiv ⟨ X ⟩) ≡ pathToEquiv refl
+  lem = transportRefl _ ∙ sym pathToEquivRefl
 
 -- variant of the above where the equivalence is definitionally idToGSetEquiv
 GSetPath : {G : Group ℓ} {X Y : GSet G} → (X ≡ Y) ≃ (GSetEquiv X Y)
