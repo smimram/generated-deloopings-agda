@@ -87,7 +87,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       q : ⟨ G ⟩ ≡ ⟨ G ⟩
       q = cong fst p
       qNat : (x y : ⟨ G ⟩) → x · transport q y ≡ transport q (x · y)
-      qNat x y = sym (equivFun GSetPath' p .snd .IsGSetHom.pres* x y)
+      qNat x y = ? -- sym (equivFun GSetPath p .snd .IsGSetHom.pres* x y)
       lem =
         equivFun (fst (idToGSetEquiv (m (subst fst p 1g)))) ≡⟨ refl ⟩
         equivFun (fst (idToGSetEquiv (m (transport q 1g)))) ≡⟨ cong equivFun (cong fst (GSetUAβ _)) ⟩
@@ -111,7 +111,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       f p · f q ∎
         where
         naturality : (p : PG ≡ PG) (x y : ⟨ G ⟩) → x · transport (cong fst p) y ≡ transport (cong fst p) (x · y)
-        naturality p x y = sym (equivFun GSetPath' p .snd .IsGSetHom.pres* x y)
+        naturality p x y = ? -- sym (equivFun GSetPath p .snd .IsGSetHom.pres* x y)
     pres1 gh =
       f (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G)))) ≡⟨ refl ⟩
       transport (cong fst (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G))))) 1g ≡⟨ refl ⟩
@@ -127,7 +127,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       1g ∎)
         where
         naturality : (p : PG {G = G} ≡ PG) (x y : ⟨ G ⟩) → x · transport (cong fst p) y ≡ transport (cong fst p) (x · y)
-        naturality p x y = sym (equivFun GSetPath' p .snd .IsGSetHom.pres* x y)
+        naturality p x y = ? -- sym (equivFun GSetPath' p .snd .IsGSetHom.pres* x y)
 
 
   torsorDeloops : GroupIso (π₁ BG isGroupoidBG) G

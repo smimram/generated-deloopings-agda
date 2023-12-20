@@ -158,6 +158,9 @@ GSetPath {G = G} {X = X} {Y = Y} = idToGSetEquiv , idToGSetEquivIsEquiv
     idToGSetEquivIsEquiv : isEquiv (idToGSetEquiv {X = X} {Y = Y})
     idToGSetEquivIsEquiv = subst isEquiv eq (snd GSetPath')
 
+GSetUnivalence : {G : Group ℓ} {X Y : GSet G} → isEquiv (idToGSetEquiv {X = X} {Y = Y})
+GSetUnivalence = snd GSetPath
+
 -- univalence for GSets
 GSetUA : {G : Group ℓ} {X Y : GSet G} → GSetEquiv X Y → X ≡ Y
 GSetUA = invEq GSetPath
@@ -172,6 +175,12 @@ GSetUAFst {G = G} {X = X} {Y = Y} f = isoFunInjective univalenceIso (cong fst (G
     fst (idToGSetEquiv (GSetUA f))    ≡⟨ cong fst (secEq GSetPath f) ⟩
     fst f                             ≡⟨ sym (secEq univalence (fst f)) ⟩
     pathToEquiv (ua (fst f))          ∎
+
+GSetUAβ : {G : Group ℓ} {X Y : GSet G} (f : GSetEquiv X Y) → idToGSetEquiv (GSetUA f) ≡ f
+GSetUAβ = secEq GSetPath
+
+GSetUAη : {G : Group ℓ} {X Y : GSet G} (p : X ≡ Y) → GSetUA (idToGSetEquiv p) ≡ p
+GSetUAη = retEq GSetPath
 
 isGroupoidGSet : (G : Group ℓ) → isGroupoid (GSet G)
 isGroupoidGSet G X Y = isOfHLevelRespectEquiv 2 (invEquiv GSetPath) (isSetΣ (isOfHLevel≃ 2 ((str X) .GSetStr.is-set) ((str Y) .GSetStr.is-set)) λ _ → isOfHLevelSuc 1 isPropIsGSetHom)
