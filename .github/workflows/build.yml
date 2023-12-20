@@ -23,3 +23,5 @@ jobs:
       run: |
         agda --version
         make
+    - name: Generate website
+      run: make website
