@@ -40,9 +40,12 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   open generators {G = G} {X = X} {ι = ι}
   open principal-torsor
   module _ {gen : ι-generates} where
+
+  -- Delooping by torsors
   BG : Pointed (ℓ-suc ℓ)
   BG = Comp (GSet G , PG)
 
+  -- The delooping is a groupoid
   isGroupoidBG : isGroupoid ⟨ BG ⟩
   isGroupoidBG = groupoidComp (GSet G , PG) (isGroupoidGSet G)
 
@@ -52,6 +55,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   BG' : Pointed (ℓ-suc ℓ)
   BG' = Comp (XSet X , PX)
 
+  -- The fundamental group of G-sets at PG is G
   PGloops : GroupIso (π₁ (GSet G , PG) (isGroupoidGSet G)) G
   PGloops = e , gh
     where
@@ -100,33 +104,34 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
     gh : IsGroupHom (str (π₁ (GSet G , PG) (isGroupoidGSet G))) f (str G)
     pres· gh p q =
       f ((str (π₁ (GSet G , PG) (isGroupoidGSet G)) GroupStr.· p) q) ≡⟨ refl ⟩
-      f (p ∙ q) ≡⟨ refl ⟩
-      transport (cong fst (p ∙ q)) 1g ≡⟨ refl ⟩
-      transport (cong fst p ∙ cong fst q) 1g ≡⟨ transportComposite (cong fst p) (cong fst q) 1g ⟩
-      transport (cong fst q) (transport (cong fst p) 1g) ≡⟨ refl ⟩
-      transport (cong fst q) (f p) ≡⟨ cong (transport (cong fst q)) (sym (·IdR (f p))) ⟩
-      transport (cong fst q) (f p · 1g) ≡⟨ sym (naturality q _ _) ⟩ -- naturality (generalization of qNat)
-      f p · transport (cong fst q) 1g ≡⟨ refl ⟩
-      f p · f q ∎
+      f (p ∙ q)                                                      ≡⟨ refl ⟩
+      transport (cong fst (p ∙ q)) 1g                                ≡⟨ refl ⟩
+      transport (cong fst p ∙ cong fst q) 1g                         ≡⟨ transportComposite (cong fst p) (cong fst q) 1g ⟩
+      transport (cong fst q) (transport (cong fst p) 1g)             ≡⟨ refl ⟩
+      transport (cong fst q) (f p)                                   ≡⟨ cong (transport (cong fst q)) (sym (·IdR (f p))) ⟩
+      transport (cong fst q) (f p · 1g)                              ≡⟨ sym (naturality q _ _) ⟩ -- naturality (generalization of qNat)
+      f p · transport (cong fst q) 1g                                ≡⟨ refl ⟩
+      f p · f q                                                      ∎
         where
         naturality : (p : PG ≡ PG) (x y : ⟨ G ⟩) → x · transport (cong fst p) y ≡ transport (cong fst p) (x · y)
         naturality p x y = sym (equivFun GSetPath p .snd .IsGSetHom.pres* x y)
     pres1 gh =
-      f (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G)))) ≡⟨ refl ⟩
+      f (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G))))                       ≡⟨ refl ⟩
       transport (cong fst (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G))))) 1g ≡⟨ refl ⟩
-      transport (cong fst (refl {x = PG {G = G}})) 1g ≡⟨ refl ⟩
-      transport (refl {x = ⟨ G ⟩}) 1g ≡⟨ transportRefl 1g ⟩
-      1g ∎
+      transport (cong fst (refl {x = PG {G = G}})) 1g                                   ≡⟨ refl ⟩
+      transport (refl {x = ⟨ G ⟩}) 1g                                                   ≡⟨ transportRefl 1g ⟩
+      1g                                                                                ∎
     presinv gh p = GroupTheory.invUniqueL G {g = f (sym p)} {h = f p} (
-      f (sym p) · (f p) ≡⟨ refl ⟩
-      f (sym p) · (transport (cong fst p) 1g) ≡⟨ naturality p (f (sym p)) 1g ⟩
-      transport (cong fst p) (f (sym p) · 1g) ≡⟨ cong (λ x → transport (cong fst p) x) ((str G .GroupStr.·IdR) (f (sym p)))  ⟩
-      transport (cong fst p) (f (sym p)) ≡⟨ refl ⟩
+      f (sym p) · (f p)                                        ≡⟨ refl ⟩
+      f (sym p) · (transport (cong fst p) 1g)                  ≡⟨ naturality p (f (sym p)) 1g ⟩
+      transport (cong fst p) (f (sym p) · 1g)                  ≡⟨ cong (λ x → transport (cong fst p) x) ((str G .GroupStr.·IdR) (f (sym p)))  ⟩
+      transport (cong fst p) (f (sym p))                       ≡⟨ refl ⟩
       transport (cong fst p) (transport (cong fst (sym p)) 1g) ≡⟨ transportTransport⁻ (cong fst p) 1g ⟩
-      1g ∎)
+      1g                                                       ∎)
         where
         naturality : (p : PG {G = G} ≡ PG) (x y : ⟨ G ⟩) → x · transport (cong fst p) y ≡ transport (cong fst p) (x · y)
         naturality p x y = sym (equivFun GSetPath p .snd .IsGSetHom.pres* x y)
 
+  -- The fundamental group of BG is G as expected
   torsorDeloops : GroupIso (π₁ BG isGroupoidBG) G
   torsorDeloops = compGroupIso {G = π₁ BG isGroupoidBG} (π₁Comp (GSet G , PG) (isGroupoidGSet G)) PGloops

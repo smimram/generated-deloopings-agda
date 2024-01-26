@@ -16,11 +16,9 @@ open import Cubical.HITs.FreeGroup
 open import XSet
 open import GSet
 
-
 private
   variable
     ℓ : Level
-
 
 module generators {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
 

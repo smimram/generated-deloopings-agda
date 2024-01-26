@@ -42,6 +42,7 @@ equalGSetStructures A B p = isoFunInjective GSetStrIsoΣ A B (equalActions _ _ p
 equalIsGSetHom : {G : Group ℓ} {X Y : GSet G} {f : ⟨ X ⟩ → ⟨ Y ⟩} (hom hom' : IsGSetHom (str X) f (str Y)) → hom .IsGSetHom.pres* ≡ hom' .IsGSetHom.pres* → hom ≡ hom'
 equalIsGSetHom {G = G} {X = X} {Y = Y} {f = f} hom hom' p = isoFunInjective  IsGSetHomIsoΣ hom hom' p
 
+-- The identity equivalence of G-sets
 idGSetEquiv : {G : Group ℓ} {X : GSet G} → GSetEquiv X X
 fst (idGSetEquiv {X = X}) = idEquiv ⟨ X ⟩
 snd idGSetEquiv = makeIsGSetHom λ _ _ → refl
@@ -72,16 +73,18 @@ isGSetHomInv {ℓ} {G} {X} {Y} (e , eEq) eHom = is-hom-h
 open import Cubical.Foundations.Equiv.Fiberwise
 
 decomposedEqualGSet : {G : Group ℓ} {A : GSet G} → Type _
-decomposedEqualGSet {G = G} {A = A} = Σ (Σ (Type _) λ B → ⟨ A ⟩ ≃ B) λ { (B , e) →
-                                       Σ (⟨ G ⟩ → B → B) (λ _*_ →
-                                         Σ (isSet B) (λ SB →
-                                           Σ ((x : B) → (str G).GroupStr.1g * x ≡ x) (λ unit →
-                                             Σ ((g1 g2 : ⟨ G ⟩) (x : B) → g1 * (g2 * x) ≡ ((str G).GroupStr._·_ g1 g2) * x) (λ comp →
-                                               IsGSetHom (str A) (equivFun e) (gsetstr (action _*_ SB unit comp))))))  }
+decomposedEqualGSet {G = G} {A = A} =
+  Σ (Σ (Type _) λ B → ⟨ A ⟩ ≃ B) λ { (B , e) →
+    Σ (⟨ G ⟩ → B → B) (λ _*_ →
+      Σ (isSet B) (λ SB →
+        Σ ((x : B) → (str G).GroupStr.1g * x ≡ x) (λ unit →
+          Σ ((g1 g2 : ⟨ G ⟩) (x : B) → g1 * (g2 * x) ≡ ((str G).GroupStr._·_ g1 g2) * x) (λ comp →
+            IsGSetHom (str A) (equivFun e) (gsetstr (action _*_ SB unit comp))))))  }
 
 -- theorem : {G : Group ℓ} {A B : GSet ℓ G} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((g : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a)))
 -- theorem {G = G} {A = A} {B = B} = compEquiv (invEquiv ΣPath≃PathΣ) {!!}
 
+-- Paths between G-sets correspond to equivalences.
 GSetPath' : {G : Group ℓ} {X Y : GSet G} → (X ≡ Y) ≃ (GSetEquiv X Y)
 GSetPath' {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetEquiv {X = A}) contr X Y
   where
@@ -151,7 +154,8 @@ GSetPath'Fst {X = X} p = J (λ Y p → equivFun GSetPath' p .fst ≡ pathToEquiv
   lem : transport (λ i → ⟨ X ⟩ ≃ ⟨ X ⟩) (idEquiv ⟨ X ⟩) ≡ pathToEquiv refl
   lem = transportRefl _ ∙ sym pathToEquivRefl
 
--- variant of the above where the equivalence is definitionally idToGSetEquiv
+-- Paths between G-sets correspond to equivalences.
+-- This is a variant of the above where the equivalence is definitionally idToGSetEquiv.
 GSetPath : {G : Group ℓ} {X Y : GSet G} → (X ≡ Y) ≃ (GSetEquiv X Y)
 GSetPath {G = G} {X = X} {Y = Y} = idToGSetEquiv , idToGSetEquivIsEquiv
   where
@@ -161,14 +165,15 @@ GSetPath {G = G} {X = X} {Y = Y} = idToGSetEquiv , idToGSetEquivIsEquiv
     idToGSetEquivIsEquiv : isEquiv (idToGSetEquiv {X = X} {Y = Y})
     idToGSetEquivIsEquiv = subst isEquiv eq (snd GSetPath')
 
+-- Univalence axiom for G-sets
 GSetUnivalence : {G : Group ℓ} {X Y : GSet G} → isEquiv (idToGSetEquiv {X = X} {Y = Y})
 GSetUnivalence = snd GSetPath
 
--- univalence for GSets
+-- Univalence axiom for G-sets (the non-trivial map which provides an identity from an equivalence)
 GSetUA : {G : Group ℓ} {X Y : GSet G} → GSetEquiv X Y → X ≡ Y
 GSetUA = invEq GSetPath
 
--- univalence for GSets extends the one on types
+-- Univalence for GSets extends the one on types
 GSetUAFst : {G : Group ℓ} {X Y : GSet G} (f : GSetEquiv X Y) → cong fst (GSetUA f) ≡ ua (fst f)
 GSetUAFst {G = G} {X = X} {Y = Y} f = isoFunInjective univalenceIso (cong fst (GSetUA f)) (ua (fst f)) lem
   where
@@ -179,11 +184,14 @@ GSetUAFst {G = G} {X = X} {Y = Y} f = isoFunInjective univalenceIso (cong fst (G
     fst f                             ≡⟨ sym (secEq univalence (fst f)) ⟩
     pathToEquiv (ua (fst f))          ∎
 
+-- Reduction for univalence of G-sets
 GSetUAβ : {G : Group ℓ} {X Y : GSet G} (f : GSetEquiv X Y) → idToGSetEquiv (GSetUA f) ≡ f
 GSetUAβ = secEq GSetPath
 
+-- Extensionality for univalence of G-sets
 GSetUAη : {G : Group ℓ} {X Y : GSet G} (p : X ≡ Y) → GSetUA (idToGSetEquiv p) ≡ p
 GSetUAη = retEq GSetPath
 
+-- The type of G-sets is a groupoid
 isGroupoidGSet : (G : Group ℓ) → isGroupoid (GSet G)
 isGroupoidGSet G X Y = isOfHLevelRespectEquiv 2 (invEquiv GSetPath) (isSetΣ (isOfHLevel≃ 2 ((str X) .GSetStr.is-set) ((str Y) .GSetStr.is-set)) λ _ → isOfHLevelSuc 1 isPropIsGSetHom)

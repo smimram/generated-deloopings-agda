@@ -44,12 +44,15 @@ module _ {G : Group ℓ} {X : Type ℓ} {Y : Type ℓ} {M : GSetStr {ℓ} G X} {
 
 module _ {G : Group ℓ} where
 
+  -- Morphisms of G-sets
   GSetHom : (X Y : GSet G) → Type ℓ
   GSetHom X Y = Σ[ f ∈ (⟨ X ⟩ → ⟨ Y ⟩) ] IsGSetHom (str X) f (str Y)
 
+  -- Predicate of being a morphism of G-sets for equivalences
   isGSetEquiv : {X Y : Type ℓ} (M : GSetStr G X) (N : GSetStr G Y) (e : X ≃ Y) → Type ℓ
   isGSetEquiv M N e = IsGSetHom M (e .fst) N
 
+  -- Equivalences of G-sets
   GSetEquiv : (X Y : GSet G) → Type ℓ
   GSetEquiv X Y = Σ[ e ∈ (⟨ X ⟩ ≃ ⟨ Y ⟩) ] isGSetEquiv (str X) (str Y) e
 
@@ -67,7 +70,7 @@ module _ {G : Group ℓ} where
   idToGSetIdEquivRefl' : {X : GSet G} → idToGSetEquiv' refl ≡ GSetIdEquiv X
   idToGSetIdEquivRefl' {X = X} = JRefl (λ Y p → GSetEquiv X Y) (GSetIdEquiv X)
 
-  -- the underlying equivalence of idToGSetEquiv is pathToEquiv
+  -- The underlying equivalence of idToGSetEquiv is pathToEquiv
   idToGSetEquiv'Fst : {X Y : GSet G} (p : X ≡ Y) → fst (idToGSetEquiv' p) ≡ pathToEquiv (cong fst p)
   idToGSetEquiv'Fst {X} {Y} = J (λ Y p → fst (idToGSetEquiv' p) ≡ pathToEquiv (cong fst p)) lem
     where
@@ -77,12 +80,13 @@ module _ {G : Group ℓ} where
       pathToEquiv (refl {x = fst X})   ≡⟨ refl ⟩
       pathToEquiv (cong fst (refl {x = X})) ∎
 
-  -- variant with function X → Y being definitionaly pathToEquiv
+  -- Variant with function X → Y being definitionaly pathToEquiv
   idToGSetEquiv : {X Y : GSet G} → X ≡ Y → GSetEquiv X Y
   idToGSetEquiv {X = X} p = pathToEquiv (cong fst p) , subst (isGSetEquiv _ _) (idToGSetEquiv'Fst p) (snd (idToGSetEquiv' p))
 
   idToGSetEquivFst : {X Y : GSet G} (p : X ≡ Y) → fst (idToGSetEquiv p) ≡ pathToEquiv (cong fst p)
   idToGSetEquivFst p = refl
 
+  -- Two equivalences of G-sets can be compared by comparing the underlying functions
   GSetEquiv≡ : {X Y : GSet G} {f g : GSetEquiv X Y} → equivFun (fst f) ≡ equivFun (fst g) → f ≡ g
   GSetEquiv≡ p = Σ≡Prop (λ _ → isPropIsGSetHom) (Σ≡Prop isPropIsEquiv p)

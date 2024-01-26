@@ -15,10 +15,10 @@ open import Cubical.Foundations.Everything
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Core.Everything
-open import Cubical.HITs.PropositionalTruncation
+open import Cubical.HITs.PropositionalTruncation as PT
+open import Cubical.HITs.SetTruncation as ST
 open import Cubical.Homotopy.Loopspace
 open import Cubical.Data.Sigma
-open import Cubical.Homotopy.Connected
 open import Cubical.Algebra.Group
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Algebra.Monoid
@@ -29,10 +29,19 @@ private
   variable
     ℓ : Level
 
--- Definition of the connected component of a pointed space
+-- The connected component of a pointed space
 Comp : Pointed ℓ → Pointed ℓ
 Comp X = Σ ⟨ X ⟩ (λ x  → ∥ (pt X) ≡ x ∥₁), (pt X , ∣ refl ∣₁)
 
+-- Connectedness of a type
+isConnected : Type ℓ → Type ℓ
+isConnected A = isContr ∥ A ∥₂
+
+-- The connected component is connected
+isConnectedComp : (A : Pointed ℓ) → isConnected ⟨ Comp A ⟩
+isConnectedComp A = ∣ pt A , ∣ refl ∣₁ ∣₂ , ST.elim (λ x → isSet→isGroupoid isSetSetTrunc _ _) (λ x → PathIdTrunc₀Iso .Iso.inv (PT.elim (λ _ → isPropPropTrunc { A = _ ≡ x }) (λ p → ∣ ΣPathP (p , toPathP (isPropPropTrunc _ _)) ∣₁) (snd x)))
+
+-- The canonical map Comp A → A is an embedding
 PathComp : {A : Pointed ℓ} (x y : ⟨ Comp A ⟩) → (x ≡ y) ≃ (fst x ≡ fst y)
 PathComp x y = isoToEquiv e
   where
@@ -43,7 +52,7 @@ PathComp x y = isoToEquiv e
   rightInv e p = refl
   leftInv e p = isoFunInjective (equivToIso (invEquiv (Σ≡PropEquiv (λ _ → isPropPropTrunc))))  _ _ refl
 
--- fundamental group of a groupoid
+-- The fundamental group of a groupoid
 π₁ : (A : Pointed ℓ) → isGroupoid ⟨ A ⟩ → Group ℓ
 π₁ A gpd = (pt A ≡ pt A) , grp
   where
@@ -62,12 +71,15 @@ PathComp x y = isoToEquiv e
   ·InvR (isGroup grp) = rCancel
   ·InvL (isGroup grp) = lCancel
 
+-- The connected component of a groupoid is a groupoid
 groupoidComp : (A : Pointed ℓ) → isGroupoid ⟨ A ⟩ → isGroupoid ⟨ Comp A ⟩
 groupoidComp A gpd = isGroupoidΣ gpd λ x → isOfHLevelPlus {n = 1} 2 isPropPropTrunc
 
+-- Taking connected components preserves loop spaces
 loopCompIsLoop : {A : Pointed ℓ} → Ω (Comp A) ≃∙ Ω A
 loopCompIsLoop {ℓ} {A} = PathComp _ _ , refl
 
+-- The fundamental groupoid is preserved by taking the component
 π₁Comp : (A : Pointed ℓ) (gpd : isGroupoid ⟨ A ⟩) → GroupIso (π₁ (Comp A) (groupoidComp A gpd)) (π₁ A gpd)
 π₁Comp A gpd = equivToIso (PathComp _ _) , record {
   pres· = λ p q → cong fst (p ∙ q) ≡⟨ cong-∙ fst p q ⟩ (cong fst p) ∙ (cong fst q) ∎;

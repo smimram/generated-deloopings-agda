@@ -155,5 +155,6 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
     Iso.rightInv isoΣ (p , q) = Σ≡Prop (λ _ → isPropΠ λ _ → isPropΠ λ _ → isSetG _ _) refl
     Iso.leftInv isoΣ (p , q) = Σ≡Prop (λ _ → isPropΠ λ _ → isPropΠ λ _ → isSetG _ _) refl
 
+    -- One of our main results: the loop space of PG is the same as the loop space of PX
     theorem : (PG ≡ PG) ≃ (U {X = X} ι PG ≡ U ι PG)
     theorem = compEquiv (GSet≡≃Σ PG PG) (compEquiv (isoToEquiv isoΣ) (invEquiv (XSet≡≃Σ (U ι PG) (U ι PG))))
