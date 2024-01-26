@@ -6,7 +6,9 @@ Emile Oleon. They have been tested with
 [Agda](https://wiki.portal.chalmers.se/agda/) 2.6.3 with the [cubical Agda
 libraray](https://github.com/agda/cubical) version 0.5.
 
-A brief table of contents:
+You can [browse the code
+online](https://smimram.github.io/generated-deloopings-agda/), here is a brief
+table of contents:
 
 - `GSet`
   - Definition of Actions

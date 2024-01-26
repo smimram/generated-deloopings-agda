@@ -1,29 +1,33 @@
 {-# OPTIONS --cubical #-}
 
--- actions of groups (G-sets)
+--
+-- Generated deloopings in Agda.
+--
+
+-- Actions of groups (G-sets)
 open import GSet
 
--- properties of G-sets
+-- Properties of G-sets
 open import GSetProperties
 
--- morphisms of G-sets
+-- Morphisms of G-sets
 open import GSetHom
 
--- actions of sets (X-sets)
+-- Actions of sets (X-sets)
 open import XSet
 
--- properties of X-sets
+-- Properties of X-sets
 open import XSetProperties
 
--- connected components
+-- Connected components
 open import Comp
 
--- generators for groups
+-- Generators for groups
 open import Generators
 
--- the principal torsor
+-- The principal torsor
 open import PrincipalTorsor
 
--- delooping by (generated) torsors
+-- Delooping by (generated) torsors
 open import Deloopings
 
