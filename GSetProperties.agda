@@ -25,7 +25,7 @@ private
   variable
     ℓ : Level
 
--- Actions that coincide are equal
+-- Actions that have the same underlying function are equal
 equalActions : {G : Group ℓ} {X : Type ℓ} (ϕ ψ : Action G X) → ϕ .Action._*_ ≡ ψ .Action._*_ → ϕ ≡ ψ
 equalActions {G} {X} ϕ ψ refl =  isoFunInjective  ActionIsoΣ ϕ ψ
   (ΣPathP (refl ,

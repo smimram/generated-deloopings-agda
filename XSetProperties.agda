@@ -38,13 +38,10 @@ U {G = G} {X = X} ι (A , strA) = A , xsetstr (action ϕ∘ι  isSetA)
   ϕ∘ι : ⟨ X ⟩ → A → A
   ϕ∘ι x a = ϕ (ι x) a
 
--- -- the action of U F extends the one of F on generators
--- Ugen : {G : Group ℓ} {X : hSet ℓ} (ι : ⟨ X ⟩ → ⟨ G ⟩) (F : GSet G) (x : ⟨ X ⟩) (a : ⟨ F ⟩) → (XSetStr.ϕ (str (U {G = G} {X = X} ι F)) SetAction.* x) a ≡ (GSetStr.ϕ (str F) Action.* (ι x)) a
--- Ugen ι F x a = refl
-
 XSetΣ : (X : hSet ℓ) → Type _
 XSetΣ {ℓ = ℓ} X = Σ (Type ℓ) λ A → (⟨ X ⟩ → A → A) × isSet A
 
+-- Convert X-sets from records to Σ-types
 XSet≃Σ : {ℓ : Level} {X : hSet ℓ} → XSet X ≃ XSetΣ X
 XSet≃Σ {ℓ = ℓ} {X = X} = isoToEquiv e
   where
@@ -60,6 +57,7 @@ XSet≃Σ {ℓ = ℓ} {X = X} = isoToEquiv e
 XSet≡Σ : {X : hSet ℓ} (A B : XSet X) → Type _
 XSet≡Σ {X = X} A B = (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a)))
 
+-- Convert equalities of X-sets from records to Σ-types
 XSet≡≃Σ : {X : hSet ℓ} (A B : XSet X) → (A ≡ B) ≃ XSet≡Σ A B
 XSet≡≃Σ {X = X} A B =
   A ≡ B ≃⟨ cong (equivFun XSet≃Σ) , isEquiv→isEmbedding (snd XSet≃Σ) A B ⟩

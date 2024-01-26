@@ -32,6 +32,7 @@ module principal-torsor {G : Group ℓ} where
     ·Composition = ·Assoc
     }
 
+  -- The principal G-torsor
   PG : GSet G
   PG = ⟨ G ⟩ , gsetstr left-action
 

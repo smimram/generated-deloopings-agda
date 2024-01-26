@@ -17,6 +17,7 @@ private
   variable
     ℓ : Level
 
+-- Action of a set on a set
 record SetAction (X : hSet ℓ) (A : Type ℓ) : Type ℓ where
   constructor
     action
@@ -36,5 +37,6 @@ record XSetStr (X : hSet ℓ) (A : Type ℓ) : Type ℓ where
 
 unquoteDecl XSetStrIsoΣ = declareRecordIsoΣ XSetStrIsoΣ (quote XSetStr)
 
+-- X-sets are sets together with an action of X
 XSet : {ℓ : Level} → hSet ℓ → Type (ℓ-suc ℓ)
 XSet {ℓ} X = TypeWithStr ℓ (XSetStr X)
