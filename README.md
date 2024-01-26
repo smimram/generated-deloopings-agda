@@ -8,33 +8,33 @@ libraray](https://github.com/agda/cubical) version 0.5.
 
 A brief table of contents:
 
-- GSet
+- `GSet`
   - Definition of Actions
   - Definition of GSets and the GSet Structure
-- GSetHom
+- `GSetHom`
   - Definition of GSet Homomorphisms
   - Definition of GSetEquiv : GSet Isomorphisms
-- GSetProperties
+- `GSetProperties`
   - Equality types for Actions and GSetHoms
   - Properties of GSetEquivs
   - Isomorphisms and paths are equivalent (through fundamental theorem of identity types)
   - Gsets form a groupoid
-- XSet
+- `XSet`
   - Definition of Set Actions
   - Definition of XSets and the XSet Structure
-- XSetProperties
+- `XSetProperties`
   - The forgetful functor U from GSets to XSets when X is a subset of G
   - Proof that the the loop space of the principal torsor is invariant by U.
-- Comp
-  - Definition of Comp the connected component of a pointed space (A, a0)
+- `Comp`
+  - Definition of Comp the connected component of a pointed space (A, a0
   - Definition of the fundamental group π₁ for groupoids
   - The Comp of a groupoid is a groupoid
   - π₁(Comp(A, a0)) = π₁(A,a0)
-- Generators
+- `Generators`
   - Definition of Group generation
-- PrincipalTorsor
+- `PrincipalTorsor`
   - Definition of the principal torsor of a group
-- Deloopings
+- `Deloopings`
   - Delooping by torsors (classical construction and proof)
   - Delooping by generated torsors
   - Caracterisation of the Principal torsor's Aut group
