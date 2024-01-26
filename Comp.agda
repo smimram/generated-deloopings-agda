@@ -72,7 +72,7 @@ loopCompIsLoop {ℓ} {A} = PathComp _ _ , refl
 
 π₁Comp : (A : Pointed ℓ) (gpd : isGroupoid ⟨ A ⟩) → GroupIso (π₁ (Comp A) (groupoidComp A gpd)) (π₁ A gpd)
 π₁Comp A gpd = equivToIso (PathComp _ _) , record {
-  pres· = λ p q → cong fst (p ∙ q) ≡⟨ congComp fst p q ⟩ (cong fst p) ∙ (cong fst q) ∎;
+  pres· = λ p q → cong fst (p ∙ q) ≡⟨ cong-∙ fst p q ⟩ (cong fst p) ∙ (cong fst q) ∎;
   pres1 = refl;
   presinv = λ x → refl
   }

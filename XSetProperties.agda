@@ -11,6 +11,7 @@
 
 open import Cubical.Foundations.Everything
 open import Cubical.Functions.Embedding
+open import Cubical.Functions.FunExtEquiv
 open import Cubical.Algebra.Group
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Homotopy.Loopspace
@@ -88,8 +89,8 @@ XSet≡≃Σ {X = X} A B =
       subst (λ A → A → A) p ∘ fA ∘ transport refl ≡ fB ≡⟨ ua (compPathlEquiv {z = fB} (cong (λ x → subst (λ A → A → A) p ∘ x) (funExt {f = fA} {g = fA ∘ transport refl} λ x → cong fA (sym (transportRefl x))))) ⟩ -- transportRefl
       subst (λ A → A → A) p ∘ fA ≡ fB ≡⟨ ua (compPathlEquiv (sym (funExt λ x → sym (fromPathP (funTypeTransp (λ A → A) (λ A → A) p (fA x)))))) ⟩
       (λ x → subst (λ A → A) p ∘ fA x ∘ subst (λ A → A) (sym p)) ≡ fB ≡⟨ refl ⟩
-      (λ x → transport p ∘ fA x ∘ transport (sym p)) ≡ fB ≡⟨ sym (ua funExt≃) ⟩
-      ((x : ⟨ X ⟩) → transport p ∘ fA x ∘ transport (sym p) ≡ fB x) ≡⟨ ua (equivΠCod (λ x → invEquiv funExt≃)) ⟩
+      (λ x → transport p ∘ fA x ∘ transport (sym p)) ≡ fB ≡⟨ sym (ua funExtEquiv) ⟩
+      ((x : ⟨ X ⟩) → transport p ∘ fA x ∘ transport (sym p) ≡ fB x) ≡⟨ ua (equivΠCod (λ x → invEquiv funExtEquiv)) ⟩
       ((x : ⟨ X ⟩) (b : ⟨ B ⟩) → transport p (fA x (transport (sym p) b)) ≡ fB x b) ≡⟨ ua (equivΠCod λ x → equivΠ (pathToEquiv (sym p)) λ b → invEquiv (compPathrEquiv (cong (fB x) (symTransport {p = p}))) ) ⟩ -- precomposition by transport p
       ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((ϕ (str A) * x) a) ≡ (ϕ (str B) * x) (transport p a)) ∎
 
