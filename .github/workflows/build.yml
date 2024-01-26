@@ -25,6 +25,13 @@ jobs:
         make
     - name: Generate website
       run: make website
+    - name: Upload artifact
+      id: upload-artifact
+      uses: actions/upload-artifact@v4
+      with:
+        path: website/
+        retention-days: 7
+        if-no-files-found: error
 
   deploy:
     needs: build
