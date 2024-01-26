@@ -20,15 +20,6 @@ private
   variable
     ℓ : Level
 
--- This lemma is probably part of the standard library somewhere: it states that
--- in order to show the equality p ≡ q of two paths between types is it enough
--- to show that the corresponding equivalences are equal
-pathEq : {A B : Type ℓ} {p q : A ≡ B} → transport p ≡ transport q → p ≡ q
-pathEq {p = p} {q = q} t = isEmbedding→Inj (isEquiv→isEmbedding (snd univalence)) p q (equivEq t)
-  where
-  open import Cubical.Foundations.Equiv
-  open import Cubical.Functions.Embedding
-
 -- TODO: can the Levels be different ?
 record IsGSetHom {G : Group ℓ} {X Y : Type ℓ} (M : GSetStr G X)  (f : X → Y) (N : GSetStr G Y)
   : Type ℓ

@@ -19,7 +19,6 @@ open import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.HITs.FreeGroup as FG renaming (_·_ to _·f_)
 open import Cubical.Data.Sigma
 
-open import Base
 open import XSet
 open import GSet
 open import GSetProperties
@@ -61,13 +60,6 @@ XSet≃Σ {ℓ = ℓ} {X = X} = isoToEquiv e
 XSet≡Σ : {X : hSet ℓ} (A B : XSet X) → Type _
 XSet≡Σ {X = X} A B = (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((str A .XSetStr._*_) x a) ≡ (str B .XSetStr._*_) x (transport p a)))
 
-symTransport : {A B : Type ℓ} {p : A ≡ B} {b : B} → transport p (transport (sym p) b) ≡ b
-symTransport {A = A} {B = B} {p = p} {b = b} =
-  transport p (transport (sym p) b) ≡⟨ sym (transportComposite (sym p) p b )⟩
-  transport ((sym p) ∙ p) b         ≡⟨ cong (λ x → transport x b) (lCancel p) ⟩
-  transport (refl) b                ≡⟨ transportRefl b ⟩
-  b                                 ∎
-
 XSet≡≃Σ : {X : hSet ℓ} (A B : XSet X) → (A ≡ B) ≃ XSet≡Σ A B
 XSet≡≃Σ {X = X} A B =
   A ≡ B ≃⟨ cong (equivFun XSet≃Σ) , isEquiv→isEmbedding (snd XSet≃Σ) A B ⟩
@@ -91,7 +83,7 @@ XSet≡≃Σ {X = X} A B =
       (λ x → subst (λ A → A) p ∘ fA x ∘ subst (λ A → A) (sym p)) ≡ fB ≡⟨ refl ⟩
       (λ x → transport p ∘ fA x ∘ transport (sym p)) ≡ fB ≡⟨ sym (ua funExtEquiv) ⟩
       ((x : ⟨ X ⟩) → transport p ∘ fA x ∘ transport (sym p) ≡ fB x) ≡⟨ ua (equivΠCod (λ x → invEquiv funExtEquiv)) ⟩
-      ((x : ⟨ X ⟩) (b : ⟨ B ⟩) → transport p (fA x (transport (sym p) b)) ≡ fB x b) ≡⟨ ua (equivΠCod λ x → equivΠ (pathToEquiv (sym p)) λ b → invEquiv (compPathrEquiv (cong (fB x) (symTransport {p = p}))) ) ⟩ -- precomposition by transport p
+      ((x : ⟨ X ⟩) (b : ⟨ B ⟩) → transport p (fA x (transport (sym p) b)) ≡ fB x b) ≡⟨ ua (equivΠCod λ x → equivΠ (pathToEquiv (sym p)) λ b → invEquiv (compPathrEquiv (cong (fB x) (transportTransport⁻ p b))) ) ⟩ -- precomposition by transport p
       ((x : ⟨ X ⟩) (a : ⟨ A ⟩) → transport p ((ϕ (str A) * x) a) ≡ (ϕ (str B) * x) (transport p a)) ∎
 
 GSet≡Σ : {G : Group ℓ} (A B : GSet G) → Type _

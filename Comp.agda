@@ -18,14 +18,12 @@ open import Cubical.Core.Everything
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.Homotopy.Loopspace
 open import Cubical.Data.Sigma
--- open import Cubical.Data.Equality renaming (_≡_ to _≡₁_  ; refl to refl₁ ; _≃_ to _≃₁ ; _·_ to _·_₁ ; _∙_ to _∙₁_ ; sym to sym₁)
 open import Cubical.Homotopy.Connected
 open import Cubical.Algebra.Group
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Algebra.Monoid
 open import Cubical.Algebra.Semigroup
 open import Cubical.Foundations.GroupoidLaws as GL
-open import Base
 
 private
   variable
