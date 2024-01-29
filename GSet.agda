@@ -17,7 +17,7 @@ private
   variable
     ℓ : Level
 
--- An action of a group on a type
+-- An action of a group on a set
 record Action (G : Group ℓ) (X : Type ℓ) : Type ℓ where
   constructor
     action

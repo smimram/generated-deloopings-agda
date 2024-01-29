@@ -25,23 +25,6 @@ private
   variable
     ℓ : Level
 
--- Actions that have the same underlying function are equal
-equalActions : {G : Group ℓ} {X : Type ℓ} (ϕ ψ : Action G X) → ϕ .Action._*_ ≡ ψ .Action._*_ → ϕ ≡ ψ
-equalActions {G} {X} ϕ ψ refl =  isoFunInjective  ActionIsoΣ ϕ ψ
-  (ΣPathP (refl ,
-    ΣPathP (isPropIsSet _ _ ,
-      ΣPathP ( (funExt (λ _ → toPathP (ψ .Action.is-set _ _ _ _))) ,
-      funExt λ _ →
-        funExt λ _ →
-          funExt λ _ → toPathP (ψ .Action.is-set _ _ _ _)))))
-
-equalGSetStructures : {G : Group ℓ} {X : Type ℓ} (A B : GSetStr G X) → A .GSetStr._*_ ≡ B .GSetStr._*_ → A ≡ B
-equalGSetStructures A B p = isoFunInjective GSetStrIsoΣ A B (equalActions _ _ p)
-
--- Use of this should be replaced by isPropIsGSetHom
-equalIsGSetHom : {G : Group ℓ} {X Y : GSet G} {f : ⟨ X ⟩ → ⟨ Y ⟩} (hom hom' : IsGSetHom (str X) f (str Y)) → hom .IsGSetHom.pres* ≡ hom' .IsGSetHom.pres* → hom ≡ hom'
-equalIsGSetHom {G = G} {X = X} {Y = Y} {f = f} hom hom' p = isoFunInjective  IsGSetHomIsoΣ hom hom' p
-
 -- The identity equivalence of G-sets
 idGSetEquiv : {G : Group ℓ} {X : GSet G} → GSetEquiv X X
 fst (idGSetEquiv {X = X}) = idEquiv ⟨ X ⟩
@@ -72,18 +55,6 @@ isGSetHomInv {ℓ} {G} {X} {Y} (e , eEq) eHom = is-hom-h
 
 open import Cubical.Foundations.Equiv.Fiberwise
 
-decomposedEqualGSet : {G : Group ℓ} {A : GSet G} → Type _
-decomposedEqualGSet {G = G} {A = A} =
-  Σ (Σ (Type _) λ B → ⟨ A ⟩ ≃ B) λ { (B , e) →
-    Σ (⟨ G ⟩ → B → B) (λ _*_ →
-      Σ (isSet B) (λ SB →
-        Σ ((x : B) → (str G).GroupStr.1g * x ≡ x) (λ unit →
-          Σ ((g1 g2 : ⟨ G ⟩) (x : B) → g1 * (g2 * x) ≡ ((str G).GroupStr._·_ g1 g2) * x) (λ comp →
-            IsGSetHom (str A) (equivFun e) (gsetstr (action _*_ SB unit comp))))))  }
-
--- theorem : {G : Group ℓ} {A B : GSet ℓ G} → (A ≡ B) ≃ (Σ (⟨ A ⟩ ≡ ⟨ B ⟩) λ p → ((g : ⟨ G ⟩) (a : ⟨ A ⟩) → transport p ((str A .GSetStr._*_) g a) ≡ (str B .GSetStr._*_) g (transport p a)))
--- theorem {G = G} {A = A} {B = B} = compEquiv (invEquiv ΣPath≃PathΣ) {!!}
-
 -- Paths between G-sets correspond to equivalences.
 GSetPath' : {G : Group ℓ} {X Y : GSet G} → (X ≡ Y) ≃ (GSetEquiv X Y)
 GSetPath' {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetEquiv {X = A}) contr X Y
@@ -91,6 +62,15 @@ GSetPath' {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetE
   contr : (A : GSet G) → isContr (Σ (GSet G) (λ B → GSetEquiv A B))
   contr A = subst isContr (sym (ua lem)) lem'
     where
+    decomposedEqualGSet : {G : Group ℓ} {A : GSet G} → Type _
+    decomposedEqualGSet {G = G} {A = A} =
+      Σ (Σ (Type _) λ B → ⟨ A ⟩ ≃ B) λ { (B , e) →
+      Σ (⟨ G ⟩ → B → B) (λ _*_ →
+      Σ (isSet B) (λ SB →
+      Σ ((x : B) → (str G).GroupStr.1g * x ≡ x) (λ unit →
+      Σ ((g1 g2 : ⟨ G ⟩) (x : B) → g1 * (g2 * x) ≡ ((str G).GroupStr._·_ g1 g2) * x) (λ comp →
+      IsGSetHom (str A) (equivFun e) (gsetstr (action _*_ SB unit comp))))))  }
+
     lem : Σ (GSet G) (λ B → GSetEquiv A B) ≃ decomposedEqualGSet {G = G} {A = A}
     lem = compEquiv (Σ-cong-equiv-fst (Σ-cong-equiv-snd λ _ → isoToEquiv (compIso GSetStrIsoΣ ActionIsoΣ))) (compEquiv (compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → compEquiv (invEquiv Σ-assoc-≃) (compEquiv (Σ-cong-equiv-fst Σ-swap-≃) Σ-assoc-≃))) (compEquiv (invEquiv Σ-assoc-≃) (Σ-cong-equiv-snd λ _ → compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → Σ-assoc-≃)))))
     isContrSingl≃ : (A : Type ℓ) → isContr (Σ (Type ℓ) λ B → A ≃ B)
@@ -98,6 +78,7 @@ GSetPath' {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetE
       where
       tsp : {B : Type ℓ} (p : A ≡ B) → subst (λ B → A ≃ B) p (idEquiv A) ≡ pathToEquiv p
       tsp = J (λ B p → subst (λ B → A ≃ B) p (idEquiv A) ≡ pathToEquiv p) (sym (pathToEquivRefl ∙ sym (substRefl {B = λ B → A ≃ B} (idEquiv A))))
+
     lem' : isContr (decomposedEqualGSet {G = G} {A = A})
     lem' = isContrΣ (isContrSingl≃ ⟨ A ⟩) (λ (B , e) → lem'' B e)
       where
@@ -140,7 +121,7 @@ GSetPath' {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetE
                                              Σ ((g1 g2 : ⟨ G ⟩) (x : B) → g1 * (g2 * x) ≡ ((str G).GroupStr._·_ g1 g2) * x) (λ comp →
                                                IsGSetHom (str A) (equivFun e) (gsetstr (action _*_ SB unit comp))))))
                                                ) → (_*'_ , SB' , unit' , comp' , hom') ≡ C
-        unique (_*''_ , SB'' , unit'' , comp'' , hom'') = ΣPathP (funExt (λ g → funExt λ x → *'≡*'' g x) , ΣPathP (isPropIsSet _ _ , ΣPathP (funExt (λ _ → toPathP (SB' _ _ _ _)) , ΣPathP ((funExt (λ _ → funExt λ _ → funExt λ _ → toPathP (SB' _ _ _ _))) , toPathP (equalIsGSetHom _ hom'' (funExt λ _ → funExt λ _ → toPathP (SB' _ _ _ _)))))))
+        unique (_*''_ , SB'' , unit'' , comp'' , hom'') = ΣPathP (funExt (λ g → funExt λ x → *'≡*'' g x) , ΣPathP (isPropIsSet _ _ , ΣPathP (funExt (λ _ → toPathP (SB' _ _ _ _)) , ΣPathP ((funExt (λ _ → funExt λ _ → funExt λ _ → toPathP (SB' _ _ _ _))) , toPathP (isPropIsGSetHom _ _)))))
           where
           *'≡*'' : (g : ⟨ G ⟩) (x : B) → g *' x ≡ g *'' x
           *'≡*'' g x =
@@ -148,17 +129,17 @@ GSetPath' {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetE
             g *'' (f (f⁻ x)) ≡⟨ cong (λ y → g *'' y) (secEq e _) ⟩
             g *'' x ∎
 
-GSetPath'Fst : {G : Group ℓ} {X Y : GSet G} (p : X ≡ Y) → equivFun GSetPath' p .fst ≡ pathToEquiv (cong fst p)
-GSetPath'Fst {X = X} p = J (λ Y p → equivFun GSetPath' p .fst ≡ pathToEquiv (cong fst p)) lem p
-  where
-  lem : transport (λ i → ⟨ X ⟩ ≃ ⟨ X ⟩) (idEquiv ⟨ X ⟩) ≡ pathToEquiv refl
-  lem = transportRefl _ ∙ sym pathToEquivRefl
-
 -- Paths between G-sets correspond to equivalences.
 -- This is a variant of the above where the equivalence is definitionally idToGSetEquiv.
 GSetPath : {G : Group ℓ} {X Y : GSet G} → (X ≡ Y) ≃ (GSetEquiv X Y)
 GSetPath {G = G} {X = X} {Y = Y} = idToGSetEquiv , idToGSetEquivIsEquiv
   where
+  GSetPath'Fst : {G : Group ℓ} {X Y : GSet G} (p : X ≡ Y) → equivFun GSetPath' p .fst ≡ pathToEquiv (cong fst p)
+  GSetPath'Fst {X = X} p = J (λ Y p → equivFun GSetPath' p .fst ≡ pathToEquiv (cong fst p)) lem p
+    where
+    lem : transport (λ i → ⟨ X ⟩ ≃ ⟨ X ⟩) (idEquiv ⟨ X ⟩) ≡ pathToEquiv refl
+    lem = transportRefl _ ∙ sym pathToEquivRefl
+
   eq : equivFun GSetPath' ≡ idToGSetEquiv
   eq = funExt λ p → Σ≡Prop (λ _ → isPropIsGSetHom) (GSetPath'Fst p ∙ sym (idToGSetEquivFst p))
   abstract
