@@ -49,9 +49,11 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
   isGroupoidBG : isGroupoid ⟨ BG ⟩
   isGroupoidBG = groupoidComp (GSet G , PG) (isGroupoidGSet G)
 
+  -- The principal X-torsor
   PX : XSet X
   PX = U {G = G} ι PG
 
+  -- The alternative delooping by X-torsors
   BG' : Pointed (ℓ-suc ℓ)
   BG' = Comp (XSet X , PX)
 
@@ -109,10 +111,11 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
       transport (cong fst p ∙ cong fst q) 1g                         ≡⟨ transportComposite (cong fst p) (cong fst q) 1g ⟩
       transport (cong fst q) (transport (cong fst p) 1g)             ≡⟨ refl ⟩
       transport (cong fst q) (f p)                                   ≡⟨ cong (transport (cong fst q)) (sym (·IdR (f p))) ⟩
-      transport (cong fst q) (f p · 1g)                              ≡⟨ sym (naturality q _ _) ⟩ -- naturality (generalization of qNat)
+      transport (cong fst q) (f p · 1g)                              ≡⟨ sym (naturality q _ _) ⟩
       f p · transport (cong fst q) 1g                                ≡⟨ refl ⟩
       f p · f q                                                      ∎
         where
+         -- naturality (generalization of qNat)
         naturality : (p : PG ≡ PG) (x y : ⟨ G ⟩) → x · transport (cong fst p) y ≡ transport (cong fst p) (x · y)
         naturality p x y = sym (equivFun GSetPath p .snd .IsGSetHom.pres* x y)
     pres1 gh =
