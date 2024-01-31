@@ -1,12 +1,22 @@
 {-# OPTIONS --cubical #-}
 
 open import Cubical.Foundations.Everything
+open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group
 open import Cubical.Relation.Binary
 open import Cubical.HITs.SetQuotients as SQ
 
 private variable
-  ℓ : Level
+  ℓ ℓ' : Level
+
+record Span (X Y : Type ℓ) : Type (ℓ-max ℓ (ℓ-suc ℓ')) where
+  field
+    total : Type ℓ'
+    src : total → X
+    tgt : total → Y
+
+Graph : (X : Type ℓ) → Type (ℓ-max ℓ (ℓ-suc ℓ'))
+Graph {ℓ' = ℓ'} X = Span {ℓ' = ℓ'} X X
 
 module _ (G : Group ℓ) where
   open GroupStr (str G)
@@ -68,8 +78,8 @@ module _ (G : Group ℓ) where
     preservesProd freeCongruenceIsCongruence = fcProd
 
     -- The free congurence as a congurence
-    freeCongruenceCongruence : (R : ⟨ G ⟩ → ⟨ G ⟩ → Type ℓ) → Congruence
-    freeCongruenceCongruence R = freeCongruence , freeCongruenceIsCongruence
+    freeCongruenceCongruence : Congruence
+    freeCongruenceCongruence = freeCongruence , freeCongruenceIsCongruence
 
   quotient : Congruence → Group ℓ
   quotient R = (⟨ G ⟩ / fst R) , grp
@@ -83,14 +93,23 @@ module _ (G : Group ℓ) where
 
 open import Cubical.HITs.FreeGroup as FG
 
+_* = FreeGroup
+
 record Relations (X : Type ℓ) : Type (ℓ-suc ℓ) where
   field
     rel : Type ℓ
-    src : rel → FreeGroup X
-    tgt : rel → FreeGroup X
+    src : rel → X *
+    tgt : rel → X *
+
+open Relations public
+
+RelationsRelation : {X : Type ℓ} → Relations X → Rel (X *) (X *) ℓ
+RelationsRelation R x y = Σ (rel R) λ p → (src R p ≡ x) × (tgt R p ≡ y)
 
 Presentation : {ℓ : Level} → Type _
 Presentation {ℓ} = TypeWithStr ℓ Relations
 
 ∣_∣ : {ℓ : Level} → Presentation {ℓ} → Group ℓ
-∣ P ∣ = quotient (freeGroupGroup ⟨ P ⟩) {!str P!}
+∣ P ∣ = quotient P* (freeCongruenceCongruence P* (RelationsRelation {!!}))
+  where
+  P* = freeGroupGroup ⟨ P ⟩
