@@ -16,8 +16,8 @@ private variable
 record Span (X Y : Type ℓ) : Type (ℓ-max ℓ (ℓ-suc ℓ')) where
   field
     total : Type ℓ'
-    src : total → X
-    tgt : total → Y
+    src   : total → X
+    tgt   : total → Y
 
 open Span public
 
@@ -72,10 +72,10 @@ module _ (G : Group ℓ) where
 
   module _ (R : Graph {ℓ' = ℓ} ⟨ G ⟩) where
 
-    -- The free congruence on a graph
+    -- The free (or generated) congruence on a graph
     data freeCongruence : ⟨ G ⟩ → ⟨ G ⟩ → Type ℓ where
       fcBase : (r : total R) → freeCongruence (src R r) (tgt R r)
-      -- fcCong : isCongruence (freeCongruence R)
+      -- fcCong : isCongruence freeCongruence
       fcRefl : {x : ⟨ G ⟩} → freeCongruence x x
       fcTrans : {x y z : ⟨ G ⟩} → freeCongruence x y → freeCongruence y z → freeCongruence x z
       fcSym : {x y : ⟨ G ⟩} → freeCongruence x y → freeCongruence y x
@@ -115,7 +115,7 @@ Presentation : {ℓ : Level} → Type _
 Presentation {ℓ} = TypeWithStr ℓ (λ X → Graph {ℓ' = ℓ} (FreeGroup X))
 
 _* : Presentation → Group ℓ
-_* P = freeGroupGroup ⟨ P ⟩
+P * = freeGroupGroup ⟨ P ⟩
 
 -- Group presented by a group presentation
 ∣_∣ : {ℓ : Level} → Presentation {ℓ} → Group ℓ
@@ -123,15 +123,15 @@ _* P = freeGroupGroup ⟨ P ⟩
 
 module _ {ℓ : Level} (P : Presentation {ℓ}) where
 
-  -- 1-skeleton delooping of a presentation
+  -- 1-skeleton of the delooping of a presentation
   data 1Delooping : Type ℓ where
     ⋆ : 1Delooping
     gen : (a : ⟨ P ⟩) → ⋆ ≡ ⋆
 
+  -- From now on, we have to suppose that we have _set_ of relations
   module _ (SP : isSet ⟨ P ⟩) where
 
     postulate
-
       -- The 1-delooping is a groupoid when we have a set of generators. This is
       -- non-trivial and proved in Wärn's _Path spaces of pushouts_.
       isGroupoid1Delooping : isGroupoid 1Delooping
@@ -148,3 +148,89 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     path (invr u i) = rCancel (path u) i
     path (invl u i) = lCancel (path u) i
     path (trunc u v p q i j) = isGroupoid1Delooping ⋆ ⋆ (path u) (path v) (cong path p) (cong path q) i j
+
+    -- The delooping of a presentation
+    data Delooping : Type ℓ where
+      inj : 1Delooping → Delooping
+      rel : (r : total (str P)) → cong inj (path (src (str P) r)) ≡ cong inj (path (tgt (str P) r))
+      gpd : isGroupoid Delooping
+
+    open import Cubical.HITs.EilenbergMacLane1
+
+    -- pathEM : (u : ⟨ P * ⟩) → _≡_ {A = EM₁ ∣ P ∣} embase embase
+    -- pathEM (η a) = emloop [ η a ]
+    -- pathEM (u · v) = pathEM u ∙ pathEM v
+    -- pathEM ε = refl
+    -- pathEM (inv u) = sym (pathEM u)
+    -- pathEM (FG.assoc u v w i) = assoc (pathEM u) (pathEM v) (pathEM w) i
+    -- pathEM (idr u i) = rUnit (pathEM u) i
+    -- pathEM (idl u i) = lUnit (pathEM u) i
+    -- pathEM (invr u i) = rCancel (pathEM u) i
+    -- pathEM (invl u i) = lCancel (pathEM u) i
+    -- pathEM (trunc u v p q i j) = emsquash _ _ (pathEM u) (pathEM v) (cong pathEM p) (cong pathEM q) i j
+
+    -- Our main theorem
+    theorem : Delooping ≃ EM₁ ∣ P ∣
+    theorem = isoToEquiv {!!}
+      where
+
+      f1 : 1Delooping → EM₁ ∣ P ∣
+      f1 ⋆ = embase
+      f1 (gen a i) = emloop [ η a ] i
+
+      -- pathToEM : (u : ⟨ P * ⟩) → cong f1 (path u) ≡ emloop [ u ]
+      -- pathToEM (η a) = refl
+      -- pathToEM (u · v) =
+        -- cong f1 (path u ∙ path v)                     ≡⟨ cong-∙ f1 (path u) (path v) ⟩
+        -- cong f1 (path u) ∙ cong f1 (path v)           ≡⟨ cong₂ _∙_ (pathToEM u) (pathToEM v) ⟩
+        -- emloop [ u ] ∙ emloop [ v ]                   ≡⟨ sym (emloop-comp ∣ P ∣ [ u ] [ v ]) ⟩
+        -- emloop (GroupStr._·_ (snd ∣ P ∣) [ u ] [ v ]) ≡⟨ refl ⟩
+        -- emloop [ u · v ]                              ∎
+      -- pathToEM ε = sym (emloop-1g ∣ P ∣)
+      -- pathToEM (inv u) =
+        -- cong f1 (sym (path u)) ≡⟨ refl ⟩
+        -- sym (cong f1 (path u)) ≡⟨ cong sym (pathToEM u) ⟩
+        -- sym (emloop [ u ])     ≡⟨ sym (emloop-sym ∣ P ∣ [ u ]) ⟩
+        -- emloop [ inv u ]       ∎
+      -- -- cong f1 (assoc (path u) (path v) (path w) i) ≡ emloop [ FG.assoc u v w i ]
+      -- pathToEM (FG.assoc u v w i) = emsquash _ _ _ _ {!!} {!!} i
+      -- --- cong f1 (rUnit (path u) i) ≡ emloop [ idr u i ]
+      -- pathToEM (idr u i) = lem i
+        -- where
+        -- lem : PathP (λ i → cong f1 (path (idr u i)) ≡ emloop [ idr u i ]) (pathToEM u) (pathToEM (u · ε))
+        -- lem = toPathP (emsquash _ _ _ _ _ _)
+      -- pathToEM (idl u i) = {!!}
+      -- pathToEM (invr u i) = {!!}
+      -- pathToEM (invl u i) = {!!}
+      -- pathToEM (trunc u v p q i j) = {!!}
+      {-# TERMINATING #-}
+      pathToEM : (u : ⟨ P * ⟩) → cong f1 (path u) ≡ emloop [ u ]
+      pathToEM u = FG.elimProp
+        {B = λ u → cong f1 (path u) ≡ emloop [ u ]}
+        (λ _ → emsquash _ _ _ _)
+        (λ a → refl)
+        (λ u v p q → 
+           cong f1 (path u ∙ path v)                     ≡⟨ cong-∙ f1 (path u) (path v) ⟩
+           cong f1 (path u) ∙ cong f1 (path v)           ≡⟨ cong₂ _∙_ (pathToEM u) (pathToEM v) ⟩
+           emloop [ u ] ∙ emloop [ v ]                   ≡⟨ sym (emloop-comp ∣ P ∣ [ u ] [ v ]) ⟩
+           emloop (GroupStr._·_ (snd ∣ P ∣) [ u ] [ v ]) ≡⟨ refl ⟩
+           emloop [ u · v ]                              ∎
+        )
+        (sym (emloop-1g ∣ P ∣))
+        (λ u p → 
+           cong f1 (sym (path u)) ≡⟨ refl ⟩
+           sym (cong f1 (path u)) ≡⟨ cong sym (pathToEM u) ⟩
+           sym (emloop [ u ])     ≡⟨ sym (emloop-sym ∣ P ∣ [ u ]) ⟩
+           emloop [ inv u ]       ∎
+        )
+        u
+
+      f : Delooping → EM₁ ∣ P ∣
+      f (inj x) = f1 x
+      f (rel r i j) = lem i j
+        where
+        u = src (snd P) r
+        v = tgt (snd P) r
+        lem : cong f1 (path u) ≡ cong f1 (path v)
+        lem = pathToEM u ∙ cong emloop (eq/ _ _ (fcBase r)) ∙ sym (pathToEM v)
+      f (gpd x y z w p q i j k) = {!!}
