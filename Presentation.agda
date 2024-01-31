@@ -12,9 +12,18 @@ open import Cubical.HITs.SetQuotients as SQ
 private variable
   ℓ ℓ' : Level
 
+-- Variant of substInPaths
 subst2≡ : {A : Type ℓ} {x x' y y' : A} (p : x ≡ x') (q : y ≡ y') (r : x ≡ y) → subst2 _≡_ p q r ≡ sym p ∙ r ∙ q
-subst2≡ p q r = {!!}
+subst2≡ p q r = J (λ _ p → subst2 _≡_ p q r ≡ sym p ∙ r ∙ q) lem p
+  where
+  lem'' : subst2 _≡_ refl refl r ≡ r
+  lem'' = transportRefl r 
+  lem' : subst2 _≡_ refl q r ≡ r ∙ q
+  lem' = J (λ _ q → subst2 _≡_ refl q r ≡ r ∙ q) (lem'' ∙ rUnit r) q
+  lem : subst2 _≡_ refl q r ≡ sym refl ∙ r ∙ q
+  lem = lem' ∙ cong₂ _∙_ (lUnit r) refl ∙ sym (assoc _ _ _)
 
+-- Useful case of subst2≡ where r is refl
 subst2≡Refl : {A : Type ℓ} {x y z : A} (p : y ≡ x) (q : y ≡ z) → subst2 _≡_ p q refl ≡ sym p ∙ q
 subst2≡Refl p q =
   subst2 _≡_ p q refl ≡⟨ subst2≡ p q refl ⟩
