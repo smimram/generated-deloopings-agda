@@ -155,23 +155,13 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       rel : (r : total (str P)) → cong inj (path (src (str P) r)) ≡ cong inj (path (tgt (str P) r))
       gpd : isGroupoid Delooping
 
-    open import Cubical.HITs.EilenbergMacLane1
-
-    -- pathEM : (u : ⟨ P * ⟩) → _≡_ {A = EM₁ ∣ P ∣} embase embase
-    -- pathEM (η a) = emloop [ η a ]
-    -- pathEM (u · v) = pathEM u ∙ pathEM v
-    -- pathEM ε = refl
-    -- pathEM (inv u) = sym (pathEM u)
-    -- pathEM (FG.assoc u v w i) = assoc (pathEM u) (pathEM v) (pathEM w) i
-    -- pathEM (idr u i) = rUnit (pathEM u) i
-    -- pathEM (idl u i) = lUnit (pathEM u) i
-    -- pathEM (invr u i) = rCancel (pathEM u) i
-    -- pathEM (invl u i) = lCancel (pathEM u) i
-    -- pathEM (trunc u v p q i j) = emsquash _ _ (pathEM u) (pathEM v) (cong pathEM p) (cong pathEM q) i j
+    open import Cubical.HITs.EilenbergMacLane1 as EM
 
     -- Our main theorem
-    theorem : Delooping ≃ EM₁ ∣ P ∣
-    theorem = isoToEquiv {!!}
+    -- The termination checker does not manage to check termination in pathToEM
+    -- {-# TERMINATING #-}
+    theorem : (fst ∣ P ∣ → ⟨ P * ⟩) → Delooping ≃ EM₁ ∣ P ∣
+    theorem sec = isoToEquiv e
       where
 
       f1 : 1Delooping → EM₁ ∣ P ∣
@@ -203,9 +193,9 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       -- pathToEM (invr u i) = {!!}
       -- pathToEM (invl u i) = {!!}
       -- pathToEM (trunc u v p q i j) = {!!}
-      {-# TERMINATING #-}
+
       pathToEM : (u : ⟨ P * ⟩) → cong f1 (path u) ≡ emloop [ u ]
-      pathToEM u = FG.elimProp
+      pathToEM = FG.elimProp
         {B = λ u → cong f1 (path u) ≡ emloop [ u ]}
         (λ _ → emsquash _ _ _ _)
         (λ a → refl)
@@ -223,7 +213,6 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
            sym (emloop [ u ])     ≡⟨ sym (emloop-sym ∣ P ∣ [ u ]) ⟩
            emloop [ inv u ]       ∎
         )
-        u
 
       f : Delooping → EM₁ ∣ P ∣
       f (inj x) = f1 x
@@ -233,4 +222,21 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         v = tgt (snd P) r
         lem : cong f1 (path u) ≡ cong f1 (path v)
         lem = pathToEM u ∙ cong emloop (eq/ _ _ (fcBase r)) ∙ sym (pathToEM v)
-      f (gpd x y z w p q i j k) = {!!}
+      f (gpd x y p q P Q i j k) = emsquash (f x) (f y) (cong f p) (cong f q) (λ i j → f (P i j)) (λ i j → f (Q i j)) i j k
+
+      g : EM₁ ∣ P ∣ → Delooping
+      g = EM.elimGroupoid
+        ∣ P ∣
+        (λ _ → gpd)
+        (inj ⋆)
+        -- this si where we need the section
+        (λ u → cong inj (path (sec u)))
+        (λ u v → toPathP {!!})
+
+      open Iso
+
+      e : Iso Delooping (EM₁ ∣ P ∣)
+      fun e = f
+      Iso.inv e = g
+      rightInv e = {!!}
+      leftInv e = {!!}
