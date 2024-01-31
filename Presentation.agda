@@ -12,6 +12,10 @@ open import Cubical.HITs.SetQuotients as SQ
 private variable
   ℓ ℓ' : Level
 
+subst2≡ : {A : Type ℓ} {x x' y y' : A} (p : x ≡ x') (q : y ≡ y') (r : x ≡ y) → subst2 _≡_ p q r ≡ sym p ∙ r ∙ q
+subst2≡ p q r = {!!}
+
+
 -- A span between two types
 record Span (X Y : Type ℓ) : Type (ℓ-max ℓ (ℓ-suc ℓ')) where
   field
@@ -160,8 +164,11 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     -- Our main theorem
     -- The termination checker does not manage to check termination in pathToEM
     -- {-# TERMINATING #-}
-    theorem : (fst ∣ P ∣ → ⟨ P * ⟩) → Delooping ≃ EM₁ ∣ P ∣
-    theorem sec = isoToEquiv e
+    theorem :
+      (sec : fst ∣ P ∣ → ⟨ P * ⟩) →
+      ((x : fst ∣ P ∣) → [ sec x ] ≡ x) →
+      Delooping ≃ EM₁ ∣ P ∣
+    theorem sec isSec = isoToEquiv e
       where
 
       f1 : 1Delooping → EM₁ ∣ P ∣
@@ -229,14 +236,34 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         ∣ P ∣
         (λ _ → gpd)
         (inj ⋆)
-        -- this si where we need the section
+        -- this is where we need the section
         (λ u → cong inj (path (sec u)))
-        (λ u v → toPathP {!!})
+        (λ u v → {!!})
+
+      fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
+      fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x)
+        refl
+        (λ x → toPathP (lem x))
+        where
+        -- lem : (x : fst ∣ P ∣) → transport (λ i → f1 (path (sec x) i) ≡ emloop x i) (λ _ → embase) ≡ (λ _ → embase)
+        lem : (x : fst ∣ P ∣) → subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡ refl
+        lem x =
+          subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡⟨ subst2≡ (cong f1 (path (sec x))) (emloop x) refl ⟩
+          sym (cong f1 (path (sec x))) ∙ refl ∙ emloop x ≡⟨ cong₂ _∙_ refl (sym (lUnit _)) ⟩
+          sym (cong f1 (path (sec x))) ∙ emloop x ≡⟨ cong₂ _∙_ (cong sym (pathToEM (sec x) ∙ cong emloop (isSec x))) refl ⟩
+          sym (emloop x) ∙ emloop x ≡⟨ lCancel _ ⟩
+          refl
+
+      gf : (x : Delooping) → g (f x) ≡ x
+      gf (inj ⋆) = refl
+      gf (inj (gen a i)) = {!!}
+      gf (rel r i i₁) = {!!}
+      gf (gpd x x₁ x₂ y x₃ y₁ i i₁ x₄) = {!!}
 
       open Iso
 
       e : Iso Delooping (EM₁ ∣ P ∣)
       fun e = f
       Iso.inv e = g
-      rightInv e = {!!}
-      leftInv e = {!!}
+      rightInv e = fg
+      leftInv e = gf
