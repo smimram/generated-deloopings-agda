@@ -15,6 +15,8 @@ record Span (X Y : Type ℓ) : Type (ℓ-max ℓ (ℓ-suc ℓ')) where
     src : total → X
     tgt : total → Y
 
+open Span public
+
 Graph : (X : Type ℓ) → Type (ℓ-max ℓ (ℓ-suc ℓ'))
 Graph {ℓ' = ℓ'} X = Span {ℓ' = ℓ'} X X
 
@@ -60,10 +62,10 @@ module _ (G : Group ℓ) where
     infixr 30 _··_
     _··_ = isTransitive R
 
-  module _ (R : ⟨ G ⟩ → ⟨ G ⟩ → Type ℓ) where
+  module _ (R : Graph {ℓ' = ℓ} ⟨ G ⟩) where
     -- The free congruence on a relation
     data freeCongruence : ⟨ G ⟩ → ⟨ G ⟩ → Type ℓ where
-      fcBase : {x y : ⟨ G ⟩} → R x y → freeCongruence x y
+      fcBase : (r : total R) → freeCongruence (src R r) (tgt R r)
       -- fcCong : isCongruence (freeCongruence R)
       fcRefl : {x : ⟨ G ⟩} → freeCongruence x x
       fcTrans : {x y z : ⟨ G ⟩} → freeCongruence x y → freeCongruence y z → freeCongruence x z
@@ -93,23 +95,10 @@ module _ (G : Group ℓ) where
 
 open import Cubical.HITs.FreeGroup as FG
 
-_* = FreeGroup
-
-record Relations (X : Type ℓ) : Type (ℓ-suc ℓ) where
-  field
-    rel : Type ℓ
-    src : rel → X *
-    tgt : rel → X *
-
-open Relations public
-
-RelationsRelation : {X : Type ℓ} → Relations X → Rel (X *) (X *) ℓ
-RelationsRelation R x y = Σ (rel R) λ p → (src R p ≡ x) × (tgt R p ≡ y)
-
 Presentation : {ℓ : Level} → Type _
-Presentation {ℓ} = TypeWithStr ℓ Relations
+Presentation {ℓ} = TypeWithStr ℓ (λ X → Graph {ℓ' = ℓ} (FreeGroup X))
 
 ∣_∣ : {ℓ : Level} → Presentation {ℓ} → Group ℓ
-∣ P ∣ = quotient P* (freeCongruenceCongruence P* (RelationsRelation {!!}))
+∣ P ∣ = quotient P* (freeCongruenceCongruence P* (str P))
   where
   P* = freeGroupGroup ⟨ P ⟩
