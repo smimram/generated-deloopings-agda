@@ -235,14 +235,16 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
            emloop [ inv u ]       ∎
         )
 
-      f : Delooping → EM₁ ∣ P ∣
-      f (inj x) = f1 x
-      f (rel r i j) = lem i j
+      -- For every base relation the source and target paths are equal in the EM-space
+      f1rel : (r : total (str P)) → cong f1 (path (src (snd P) r)) ≡ cong f1 (path (tgt (snd P) r))
+      f1rel r = pathToEM u ∙ cong emloop (eq/ _ _ (fcBase r)) ∙ sym (pathToEM v)
         where
         u = src (snd P) r
         v = tgt (snd P) r
-        lem : cong f1 (path u) ≡ cong f1 (path v)
-        lem = pathToEM u ∙ cong emloop (eq/ _ _ (fcBase r)) ∙ sym (pathToEM v)
+
+      f : Delooping → EM₁ ∣ P ∣
+      f (inj x) = f1 x
+      f (rel r i j) = f1rel r i j
       f (gpd x y p q P Q i j k) = emsquash (f x) (f y) (cong f p) (cong f q) (λ i j → f (P i j)) (λ i j → f (Q i j)) i j k
 
       g : EM₁ ∣ P ∣ → Delooping
@@ -258,7 +260,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         lem : (u v : fst ∣ P ∣) → subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v )))) refl ≡ cong inj (path (sec v))
         lem u v =
           subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))) refl ≡⟨ subst2≡Refl _ _ ⟩
-          sym (cong inj (path (sec u))) ∙ cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))             ≡⟨ {!!} ⟩
+          sym (cong inj (path (sec u))) ∙ cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))             ≡⟨ cong₂ _∙_ refl (cong (cong inj) lem') ⟩
           sym (cong inj (path (sec u))) ∙ cong inj (path (sec u · sec v))                                  ≡⟨ refl ⟩
           sym (cong inj (path (sec u))) ∙ cong inj (path (sec u) ∙ path (sec v))                           ≡⟨ cong₂ _∙_ refl (cong-∙ inj (path (sec u)) (path (sec v))) ⟩
           sym (cong inj (path (sec u))) ∙ cong inj (path (sec u)) ∙ cong inj (path (sec v))                ≡⟨ assoc _ _ _ ⟩
@@ -292,7 +294,9 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
           cong g (emloop [ η a ])       ≡⟨ refl ⟩
           cong inj (path (sec [ η a ])) ≡⟨ {!!} ⟩
           cong inj (gen a)              ∎
-      gf (rel r i j) = {!!}
+      gf (rel r i j) = {!!} -- Delooping is a groupoid
+        where
+        lem : {!cong (cong g) (f1rel r)!} ≡ r
       gf (gpd x y p q P Q i j k) = {!!} -- isPropIsGroupoid
 
       open Iso
