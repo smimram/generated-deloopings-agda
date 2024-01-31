@@ -1,6 +1,7 @@
 {-# OPTIONS --cubical #-}
 
-open import Cubical.Foundations.Everything
+open import Cubical.Foundations.Everything hiding (⋆)
+open import Cubical.Foundations.GroupoidLaws as GL
 open import Cubical.Data.Sigma
 open import Cubical.Algebra.Semigroup
 open import Cubical.Algebra.Monoid
@@ -27,6 +28,7 @@ Graph {ℓ' = ℓ'} X = Span {ℓ' = ℓ'} X X
 module _ (G : Group ℓ) where
   open GroupStr (str G)
 
+  -- A relation is a congruence
   record isCongruence (_∼_ : ⟨ G ⟩ → ⟨ G ⟩ → Type ℓ) : Type ℓ where
     field
       equivalence : BinaryRelation.isEquivRel _∼_
@@ -69,7 +71,8 @@ module _ (G : Group ℓ) where
     _··_ = isTransitive R
 
   module _ (R : Graph {ℓ' = ℓ} ⟨ G ⟩) where
-    -- The free congruence on a relation
+
+    -- The free congruence on a graph
     data freeCongruence : ⟨ G ⟩ → ⟨ G ⟩ → Type ℓ where
       fcBase : (r : total R) → freeCongruence (src R r) (tgt R r)
       -- fcCong : isCongruence (freeCongruence R)
@@ -105,14 +108,43 @@ module _ (G : Group ℓ) where
     IsGroup.·InvR (GroupStr.isGroup grp) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·InvR x)
     IsGroup.·InvL (GroupStr.isGroup grp) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·InvL x)
 
-open import Cubical.HITs.FreeGroup as FG
+open import Cubical.HITs.FreeGroup as FG hiding (assoc)
 
 -- A group presentation
 Presentation : {ℓ : Level} → Type _
 Presentation {ℓ} = TypeWithStr ℓ (λ X → Graph {ℓ' = ℓ} (FreeGroup X))
 
+_* : Presentation → Group ℓ
+_* P = freeGroupGroup ⟨ P ⟩
+
 -- Group presented by a group presentation
 ∣_∣ : {ℓ : Level} → Presentation {ℓ} → Group ℓ
-∣ P ∣ = quotient P* (freeCongruenceCongruence P* (str P))
-  where
-  P* = freeGroupGroup ⟨ P ⟩
+∣ P ∣ = quotient (P *) (freeCongruenceCongruence (P *) (str P))
+
+module _ {ℓ : Level} (P : Presentation {ℓ}) where
+
+  -- 1-skeleton delooping of a presentation
+  data 1Delooping : Type ℓ where
+    ⋆ : 1Delooping
+    gen : (a : ⟨ P ⟩) → ⋆ ≡ ⋆
+
+  module _ (SP : isSet ⟨ P ⟩) where
+
+    postulate
+
+      -- The 1-delooping is a groupoid when we have a set of generators. This is
+      -- non-trivial and proved in Wärn's _Path spaces of pushouts_.
+      isGroupoid1Delooping : isGroupoid 1Delooping
+
+    -- Path associated to a formal composite
+    path : (u : ⟨ P * ⟩) → ⋆ ≡ ⋆
+    path (η a) = gen a
+    path (u · v) = path u ∙ path v
+    path ε = refl
+    path (inv u) = sym (path u)
+    path (FG.assoc u v w i) = assoc (path u) (path v) (path w) i
+    path (idr u i) = rUnit (path u) i
+    path (idl u i) = lUnit (path u) i
+    path (invr u i) = rCancel (path u) i
+    path (invl u i) = lCancel (path u) i
+    path (trunc u v p q i j) = isGroupoid1Delooping ⋆ ⋆ (path u) (path v) (cong path p) (cong path q) i j
