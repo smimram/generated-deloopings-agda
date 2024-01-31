@@ -15,6 +15,11 @@ private variable
 subst2≡ : {A : Type ℓ} {x x' y y' : A} (p : x ≡ x') (q : y ≡ y') (r : x ≡ y) → subst2 _≡_ p q r ≡ sym p ∙ r ∙ q
 subst2≡ p q r = {!!}
 
+subst2≡Refl : {A : Type ℓ} {x y z : A} (p : y ≡ x) (q : y ≡ z) → subst2 _≡_ p q refl ≡ sym p ∙ q
+subst2≡Refl p q =
+  subst2 _≡_ p q refl ≡⟨ subst2≡ p q refl ⟩
+  sym p ∙ refl ∙ q    ≡⟨ cong₂ _∙_ refl (sym (lUnit q)) ⟩
+  sym p ∙ q           ∎
 
 -- A span between two types
 record Span (X Y : Type ℓ) : Type (ℓ-max ℓ (ℓ-suc ℓ')) where
@@ -238,7 +243,23 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         (inj ⋆)
         -- this is where we need the section
         (λ u → cong inj (path (sec u)))
-        (λ u v → {!!})
+        (λ u v → toPathP (lem u v))
+        where
+        -- lem : (u v : fst ∣ P ∣) → transport (λ i → inj (path (sec u) i) ≡ inj (path (sec ((snd ∣ P ∣ GroupStr.· u) v)) i)) (λ _ → inj ⋆) ≡ (λ i → inj (path (sec v) i))
+        lem : (u v : fst ∣ P ∣) → subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v )))) refl ≡ cong inj (path (sec v))
+        lem u v =
+          subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))) refl ≡⟨ subst2≡Refl _ _ ⟩
+          sym (cong inj (path (sec u))) ∙ cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))             ≡⟨ {!!} ⟩
+          sym (cong inj (path (sec u))) ∙ cong inj (path (sec u · sec v))                                  ≡⟨ refl ⟩
+          sym (cong inj (path (sec u))) ∙ cong inj (path (sec u) ∙ path (sec v))                           ≡⟨ cong₂ _∙_ refl (cong-∙ inj (path (sec u)) (path (sec v))) ⟩
+          sym (cong inj (path (sec u))) ∙ cong inj (path (sec u)) ∙ cong inj (path (sec v))                ≡⟨ assoc _ _ _ ⟩
+          (sym (cong inj (path (sec u))) ∙ cong inj (path (sec u))) ∙ cong inj (path (sec v))              ≡⟨ cong₂ _∙_ (lCancel _) refl ⟩
+          refl ∙ cong inj (path (sec v))                                                                   ≡⟨ sym (lUnit _) ⟩
+          cong inj (path (sec v))                                                                          ∎
+          where
+          -- Note: we cannot expect sec to directly preserve product, only under path
+          lem' : path (sec (GroupStr._·_ (snd ∣ P ∣) u v)) ≡ path (sec u · sec v)
+          lem' = {!!}
 
       fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
       fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x)
@@ -248,17 +269,22 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         -- lem : (x : fst ∣ P ∣) → transport (λ i → f1 (path (sec x) i) ≡ emloop x i) (λ _ → embase) ≡ (λ _ → embase)
         lem : (x : fst ∣ P ∣) → subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡ refl
         lem x =
-          subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡⟨ subst2≡ (cong f1 (path (sec x))) (emloop x) refl ⟩
-          sym (cong f1 (path (sec x))) ∙ refl ∙ emloop x ≡⟨ cong₂ _∙_ refl (sym (lUnit _)) ⟩
-          sym (cong f1 (path (sec x))) ∙ emloop x ≡⟨ cong₂ _∙_ (cong sym (pathToEM (sec x) ∙ cong emloop (isSec x))) refl ⟩
-          sym (emloop x) ∙ emloop x ≡⟨ lCancel _ ⟩
-          refl
+          subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡⟨ subst2≡Refl (cong f1 (path (sec x))) (emloop x) ⟩
+          sym (cong f1 (path (sec x))) ∙ emloop x             ≡⟨ cong₂ _∙_ (cong sym (pathToEM (sec x) ∙ cong emloop (isSec x))) refl ⟩
+          sym (emloop x) ∙ emloop x                           ≡⟨ lCancel _ ⟩
+          refl                                                ∎
 
       gf : (x : Delooping) → g (f x) ≡ x
       gf (inj ⋆) = refl
-      gf (inj (gen a i)) = {!!}
-      gf (rel r i i₁) = {!!}
-      gf (gpd x x₁ x₂ y x₃ y₁ i i₁ x₄) = {!!}
+      gf (inj (gen a i)) j = lem j i
+        where
+        lem : cong g (emloop [ η a ]) ≡ cong inj (gen a)
+        lem =
+          cong g (emloop [ η a ])       ≡⟨ refl ⟩
+          cong inj (path (sec [ η a ])) ≡⟨ {!!} ⟩
+          cong inj (gen a)              ∎
+      gf (rel r i j) = {!!}
+      gf (gpd x y p q P Q i j k) = {!!} -- isPropIsGroupoid
 
       open Iso
 
