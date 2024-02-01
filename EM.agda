@@ -146,8 +146,10 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     ⋆ : 1Delooping
     gen : (a : ⟨ P ⟩) → ⋆ ≡ ⋆
 
-  -- From now on, we have to suppose that we have _set_ of relations
-  module _ (SP : isSet ⟨ P ⟩) where
+  -- TODO: do we need this???
+  -- -- From now on, we have to suppose that we have _set_ of relations
+  -- module _ (SP : isSet ⟨ P ⟩) where
+  module _ where
 
     postulate
       -- The 1-delooping is a groupoid when we have a set of generators. This is
@@ -285,19 +287,29 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
           sym (emloop x) ∙ emloop x                           ≡⟨ lCancel _ ⟩
           refl                                                ∎
 
-      gf : (x : Delooping) → g (f x) ≡ x
-      gf (inj ⋆) = refl
-      gf (inj (gen a i)) j = lem j i
+      gf1 : (x : 1Delooping) → g (f1 x) ≡ inj x
+      gf1 ⋆ = refl
+      gf1 (gen a i) j = lem j i
         where
+        -- TODO: this should be an axiom
+        lem' : path (sec [ η a ]) ≡ gen a
+        lem' = {!!}
         lem : cong g (emloop [ η a ]) ≡ cong inj (gen a)
         lem =
           cong g (emloop [ η a ])       ≡⟨ refl ⟩
-          cong inj (path (sec [ η a ])) ≡⟨ {!!} ⟩
+          cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) lem' ⟩
           cong inj (gen a)              ∎
+
+      gf : (x : Delooping) → g (f x) ≡ x
+      gf (inj x) = gf1 x
       gf (rel r i j) = {!!} -- Delooping is a groupoid
         where
-        lem : {!cong (cong g) (f1rel r)!} ≡ r
-      gf (gpd x y p q P Q i j k) = {!!} -- isPropIsGroupoid
+        -- lem : {!cong (cong g) (f1rel r)!} ≡ {!!}
+        -- cong gf1 (path (src (str P) r))
+        -- cong gf1 (path (tgt (str P) r))
+        lem : {!!} ≡ {!!}
+        lem = {!!}
+      gf (gpd x y p q P Q i j k) = {!!} -- isPropIsGroupoid (being a groupoid is a proposition)
 
       open Iso
 
