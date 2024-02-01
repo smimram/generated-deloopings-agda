@@ -146,6 +146,14 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     ⋆ : 1Delooping
     gen : (a : ⟨ P ⟩) → ⋆ ≡ ⋆
 
+  1Delooping-elim :
+    (A : 1Delooping → Type ℓ)
+    (Apt : A ⋆) →
+    ((a : ⟨ P ⟩) → PathP (λ i → cong A (gen a) i) Apt Apt) →
+    (x : 1Delooping) → A x
+  1Delooping-elim A Apt Agen ⋆ = Apt
+  1Delooping-elim A Apt Agen (gen a i) = Agen a i
+
   -- TODO: do we need this???
   -- -- From now on, we have to suppose that we have _set_ of relations
   -- module _ (SP : isSet ⟨ P ⟩) where
@@ -157,6 +165,10 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       isGroupoid1Delooping : isGroupoid 1Delooping
 
     -- Path associated to a formal composite
+
+    -- path : (u : ⟨ P * ⟩) → ⋆ ≡ ⋆
+    -- path = fst (FG.rec gen)
+
     path : (u : ⟨ P * ⟩) → ⋆ ≡ ⋆
     path (η a) = gen a
     path (u · v) = path u ∙ path v
@@ -174,6 +186,18 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       inj : 1Delooping → Delooping
       rel : (r : total (str P)) → cong inj (path (src (str P) r)) ≡ cong inj (path (tgt (str P) r))
       gpd : isGroupoid Delooping
+
+    Delooping-elim :
+      (A : Delooping → Type ℓ)
+      (Apt : A (inj ⋆))
+      (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt) →
+      ((r : total (str P)) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) {!!} {!!}) →
+      ((x : Delooping) → isGroupoid (A x)) → (x : Delooping) → A x
+    Delooping-elim A Apt Agen Arel Agpd (inj x) = 1Delooping-elim (λ x → A (inj x)) Apt Agen x
+    Delooping-elim A Apt Agen Arel Agpd (rel r i j) = Arel r i j
+    Delooping-elim A Apt Agen Arel Agpd (gpd x y p q P Q i j k) = isOfHLevel→isOfHLevelDep 3 Agpd (f x) (f y) (cong f p) (cong f q) (cong (cong f) P) (cong (cong f) Q) (gpd x y p q P Q) i j k
+      where
+      f = Delooping-elim A Apt Agen Arel Agpd
 
     open import Cubical.HITs.EilenbergMacLane1 as EM
 
@@ -302,14 +326,17 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
 
       gf : (x : Delooping) → g (f x) ≡ x
       gf (inj x) = gf1 x
-      gf (rel r i j) = {!!} -- Delooping is a groupoid
+      gf (rel r i j) = lem i j -- Delooping is a groupoid
         where
         -- lem : {!cong (cong g) (f1rel r)!} ≡ {!!}
-        -- cong gf1 (path (src (str P) r))
-        -- cong gf1 (path (tgt (str P) r))
-        lem : {!!} ≡ {!!}
+        -- cong inj (path (src (str P) r)) ≡ cong inj (path (tgt (str P) r))
+        u = src (str P) r
+        v = tgt (str P) r
+        lem' : (u : ⟨ P * ⟩) → {!g (f1 (path u)) ≡ cong inj (path u)!}
+        lem' u = {!!}
+        lem : PathP (λ i → PathP (λ j → g (f (rel r i j)) ≡ rel r i j) refl refl) {!!} {!!}
         lem = {!!}
-      gf (gpd x y p q P Q i j k) = {!!} -- isPropIsGroupoid (being a groupoid is a proposition)
+      gf (gpd x y p q P Q i j k) = isOfHLevel→isOfHLevelDep 3 (λ x → (isSet→isGroupoid (gpd (g (f x)) x))) {!!} {!!} {!!} {!!} {!!} {!!} (gpd x y p q P Q) i j k -- isPropIsGroupoid (being a groupoid is a proposition)
 
       open Iso
 
