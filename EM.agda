@@ -207,15 +207,6 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     where
     f = Delooping-elim A Apt Agen Arel Agpd
 
-  -- Variant of the elimination principle with transport instead of PathP
-  Delooping-elimT :
-    (A : Delooping → Type ℓ)
-    (Apt : A (inj ⋆))
-    (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt)
-    (Arel : (r : Rel) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) (pathD A Apt Agen (src r)) (pathD A Apt Agen (tgt r))) →
-    ((x : Delooping) → isGroupoid (A x)) → (x : Delooping) → A x
-  Delooping-elimT = {!!}
-
   open import Cubical.HITs.EilenbergMacLane1 as EM
 
   -- Our main theorem: the delooping associated to the presentation coincides
@@ -225,10 +216,15 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   -- but it should
   {-# TERMINATING #-}
   theorem :
+    -- We have a section
     (sec : fst ∣ P ∣ → ⟨ P * ⟩) →
     ((x : fst ∣ P ∣) → [ sec x ] ≡ x) →
+    -- which preserves generators
+    ((a : ⟨ P ⟩) → path (sec [ η a ]) ≡ gen a) →
+    -- and products
+    ((u v : fst ∣ P ∣) → path (sec (GroupStr._·_ (snd ∣ P ∣) u v)) ≡ path (sec u · sec v)) →
     Delooping ≃ EM₁ ∣ P ∣
-  theorem sec isSec = isoToEquiv e
+  theorem sec isSec secGen secProd = isoToEquiv e
     where
 
     -- We cen send the 1-delooping to EM
@@ -281,17 +277,13 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       lem : (u v : fst ∣ P ∣) → subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v )))) refl ≡ cong inj (path (sec v))
       lem u v =
         subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))) refl ≡⟨ subst2≡Refl _ _ ⟩
-        sym (cong inj (path (sec u))) ∙ cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))             ≡⟨ cong₂ _∙_ refl (cong (cong inj) lem') ⟩
+        sym (cong inj (path (sec u))) ∙ cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))             ≡⟨ cong₂ _∙_ refl (cong (cong inj) (secProd u v)) ⟩
         sym (cong inj (path (sec u))) ∙ cong inj (path (sec u · sec v))                                  ≡⟨ refl ⟩
         sym (cong inj (path (sec u))) ∙ cong inj (path (sec u) ∙ path (sec v))                           ≡⟨ cong₂ _∙_ refl (cong-∙ inj (path (sec u)) (path (sec v))) ⟩
         sym (cong inj (path (sec u))) ∙ cong inj (path (sec u)) ∙ cong inj (path (sec v))                ≡⟨ assoc _ _ _ ⟩
         (sym (cong inj (path (sec u))) ∙ cong inj (path (sec u))) ∙ cong inj (path (sec v))              ≡⟨ cong₂ _∙_ (lCancel _) refl ⟩
         refl ∙ cong inj (path (sec v))                                                                   ≡⟨ sym (lUnit _) ⟩
         cong inj (path (sec v))                                                                          ∎
-        where
-        -- Note: we cannot expect sec to directly preserve product, only under path
-        lem' : path (sec (GroupStr._·_ (snd ∣ P ∣) u v)) ≡ path (sec u · sec v)
-        lem' = {!!}
 
     fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
     fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x)
@@ -312,12 +304,10 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       gf-rel
       (λ x → isSet→isGroupoid (gpd (g (f x)) x))
       where
-      gf-gen-ax : (a : ⟨ P ⟩) → path (sec [ η a ]) ≡ gen a
-      gf-gen-ax = {!!}
       gf-gen' : (a : ⟨ P ⟩) → cong g (emloop [ η a ]) ≡ cong inj (gen a)
       gf-gen' a =
         cong g (emloop [ η a ])       ≡⟨ refl ⟩
-        cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) (gf-gen-ax a) ⟩
+        cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) (secGen a) ⟩
         cong inj (gen a)              ∎
       gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (f1 (gen a i)) ≡ inj (gen a i)) refl refl
       gf-gen a i j = gf-gen' a j i
