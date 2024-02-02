@@ -194,6 +194,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       (u : ⟨ P * ⟩) → PathP (λ i → A (inj (path u i))) Apt Apt
     pathD A Apt Agen u = cong (1Delooping-elim (λ x → A (inj x)) Apt Agen) (path u)
 
+    -- Elimination principle from Delooping
     Delooping-elim :
       (A : Delooping → Type ℓ)
       (Apt : A (inj ⋆))
@@ -205,6 +206,15 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     Delooping-elim A Apt Agen Arel Agpd (gpd x y p q P Q i j k) = isOfHLevel→isOfHLevelDep 3 Agpd (f x) (f y) (cong f p) (cong f q) (cong (cong f) P) (cong (cong f) Q) (gpd x y p q P Q) i j k
       where
       f = Delooping-elim A Apt Agen Arel Agpd
+
+    -- Variant of the elimination principle with transport instead of PathP
+    Delooping-elimT :
+      (A : Delooping → Type ℓ)
+      (Apt : A (inj ⋆))
+      (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt)
+      (Arel : (r : total (str P)) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) (pathD A Apt Agen (src (str P) r)) (pathD A Apt Agen (tgt (str P) r))) →
+      ((x : Delooping) → isGroupoid (A x)) → (x : Delooping) → A x
+    Delooping-elimT = {!!}
 
     open import Cubical.HITs.EilenbergMacLane1 as EM
 
@@ -318,18 +328,18 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
           sym (emloop x) ∙ emloop x                           ≡⟨ lCancel _ ⟩
           refl                                                ∎
 
-      gf1 : (x : 1Delooping) → g (f1 x) ≡ inj x
-      gf1 ⋆ = refl
-      gf1 (gen a i) j = lem j i
-        where
-        -- TODO: this should be an axiom
-        lem' : path (sec [ η a ]) ≡ gen a
-        lem' = {!!}
-        lem : cong g (emloop [ η a ]) ≡ cong inj (gen a)
-        lem =
-          cong g (emloop [ η a ])       ≡⟨ refl ⟩
-          cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) lem' ⟩
-          cong inj (gen a)              ∎
+      -- gf1 : (x : 1Delooping) → g (f1 x) ≡ inj x
+      -- gf1 ⋆ = refl
+      -- gf1 (gen a i) j = lem j i
+        -- where
+        -- -- TODO: this should be an axiom
+        -- lem' : path (sec [ η a ]) ≡ gen a
+        -- lem' = {!!}
+        -- lem : cong g (emloop [ η a ]) ≡ cong inj (gen a)
+        -- lem =
+          -- cong g (emloop [ η a ])       ≡⟨ refl ⟩
+          -- cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) lem' ⟩
+          -- cong inj (gen a)              ∎
 
       -- gf : (x : Delooping) → g (f x) ≡ x
       -- gf (inj x) = gf1 x
@@ -359,13 +369,47 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
           cong g (emloop [ η a ])       ≡⟨ refl ⟩
           cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) (gf-gen-ax a) ⟩
           cong inj (gen a)              ∎
-        gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (emloop [ η a ] i) ≡ inj (gen a i)) refl refl
+        gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (f1 (gen a i)) ≡ inj (gen a i)) refl refl
         gf-gen a i j = gf-gen' a j i
+        -- f1rel r : cong f1 (path u) ≡ cong f1 (path v)
+        -- rel r :   cong inj (path u) ≡ cong inj (path v)
+
+-- i = i0 ⊢ cong g (cong f1 (path (src (snd P) r))) ≡
+         -- cong g (cong f1 (path (tgt (snd P) r)))
+-- i = i1 ⊢ cong inj (path (src (str P) r)) ≡
+         -- cong inj (path (tgt (str P) r))
+
+        gf-rel' : (r : total (str P)) → PathP (λ i → {!gf-gen!}) (cong (cong g) (f1rel r)) (rel r)
+        gf-rel' r = {!!}
         gf-rel : (r : total (str P)) →
           PathP (λ i → PathP (λ j → g (f1rel r i j) ≡ rel r i j) refl refl)
+          -- PathP (λ i → PathP (λ j → PathP (λ k → Delooping) (g (f1rel r i j)) (rel r i j)) refl refl)
             (pathD (λ x → g (f x) ≡ x) refl gf-gen (src (str P) r))
             (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt (str P) r))
-        gf-rel r = {!!}
+
+
+-- Have: {A : Type _ℓ_2328} {B : A → Type _ℓ'_2329} →
+      -- ((a : A) (x y : B a) (x₁ y₁ : x ≡ y) → isProp (x₁ ≡ y₁)) →
+      -- {a0 a1 : A} (b0 : B a0) (b1 : B a1)
+      -- {a0 = a2 : a0 ≡ a1} {a1 = a3 : a0 ≡ a1}
+      -- (i : PathP (λ i₁ → B (a2 i₁)) b0 b1)
+      -- (b2 : PathP (λ j → B (a3 j)) b0 b1)
+      -- {a0 = a4 : a2 ≡ a3} {a1 = a5 : a2 ≡ a3}
+      -- (b3 : PathP (λ i₁ → PathP (λ i₂ → B (a4 i₁ i₂)) b0 b1) i b2)
+      -- (b4 : PathP (λ i₁ → PathP (λ i₂ → B (a5 i₁ i₂)) b0 b1) i b2)
+      -- (p : a4 ≡ a5) →
+      -- PathP
+      -- (λ i₁ → PathP (λ i₂ → PathP (λ i₃ → B (p i₁ i₂ i₃)) b0 b1) i b2) b3
+      -- b4
+
+-- k = i0 ⊢ g (f1rel r i j)
+-- k = i1 ⊢ rel r i j
+-- j = i0 ⊢ inj ⋆
+-- j = i1 ⊢ inj ⋆
+-- i = i0 ⊢ 1Delooping-elim (λ x → g (f1 x) ≡ inj x) refl gf-gen (path (src (snd P) r) j) k
+-- i = i1 ⊢ 1Delooping-elim (λ x → g (f1 x) ≡ inj x) refl gf-gen (path (tgt (snd P) r) j) k
+        gf-rel r = toPathP {!!}
+        -- isOfHLevel→isOfHLevelDep 3 {B = λ _ → Delooping} (λ _ → gpd) {!inj ⋆!} {!!} {!!} {!!} {!!} {!!} {!!} i j k
 
       open Iso
 
