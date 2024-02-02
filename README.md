@@ -11,7 +11,7 @@ online](https://smimram.github.io/generated-deloopings-agda/).
 
 ## Delooping with presented Eilenberg-MacLane spaces
 
-- `EM`
+- [`EM`](EM.agda)
   - Definition of Eilenberg-MacLane spaces associated to a presentation
   - Equivalence with the traditional definition
 
