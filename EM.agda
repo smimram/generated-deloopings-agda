@@ -275,8 +275,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       ∣ P ∣
       (λ _ → gpd)
       (inj ⋆)
-      -- this is where we need the section
-      (λ u → cong inj (path (sec u)))
+      (λ u → cong inj (path (sec u))) -- this is where we need the section
       (λ u v → toPathP (lem u v))
       where
       -- lem : (u v : fst ∣ P ∣) → transport (λ i → inj (path (sec u) i) ≡ inj (path (sec ((snd ∣ P ∣ GroupStr.· u) v)) i)) (λ _ → inj ⋆) ≡ (λ i → inj (path (sec v) i))
