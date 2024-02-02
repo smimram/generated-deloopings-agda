@@ -1,5 +1,11 @@
 {-# OPTIONS --cubical #-}
 
+--
+-- Construction of a "smaller" variant of deloopings as Eilenberg-MacLane spaces
+-- (K(G,1)) for a group G with a given presentation and equivalence with
+-- traditional spaces.
+--
+
 open import Cubical.Foundations.Everything hiding (⋆)
 open import Cubical.Foundations.GroupoidLaws as GL
 open import Cubical.Data.Sigma

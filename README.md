@@ -7,8 +7,15 @@ Emile Oleon. They have been tested with
 libraray](https://github.com/agda/cubical) version 0.5.
 
 You can [browse the code
-online](https://smimram.github.io/generated-deloopings-agda/), here is a brief
-table of contents:
+online](https://smimram.github.io/generated-deloopings-agda/).
+
+## Delooping with presented Eilenberg-MacLane spaces
+
+- `EM`
+  - Definition of Eilenberg-MacLane spaces associated to a presentation
+  - Equivalence with the traditional definition
+
+## Delooping with (generated) G-sets
 
 - `GSet`
   - Definition of Actions
