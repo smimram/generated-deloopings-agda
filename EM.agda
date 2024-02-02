@@ -281,7 +281,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       -- lem : (u v : fst ∣ P ∣) → transport (λ i → inj (path (sec u) i) ≡ inj (path (sec ((snd ∣ P ∣ GroupStr.· u) v)) i)) (λ _ → inj ⋆) ≡ (λ i → inj (path (sec v) i))
       lem : (u v : fst ∣ P ∣) → subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v )))) refl ≡ cong inj (path (sec v))
       lem u v =
-        subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))) refl ≡⟨ subst2≡Refl _ _ ⟩
+        subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))) refl ≡⟨ subst2≡Refl (cong inj (path (sec u))) {!_!} ⟩
         sym (cong inj (path (sec u))) ∙ cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))             ≡⟨ cong₂ _∙_ refl (cong (cong inj) (secProd u v)) ⟩
         sym (cong inj (path (sec u))) ∙ cong inj (path (sec u · sec v))                                  ≡⟨ refl ⟩
         sym (cong inj (path (sec u))) ∙ cong inj (path (sec u) ∙ path (sec v))                           ≡⟨ cong₂ _∙_ refl (cong-∙ inj (path (sec u)) (path (sec v))) ⟩
