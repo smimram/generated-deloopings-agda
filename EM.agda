@@ -6,7 +6,7 @@ open import Cubical.Data.Sigma
 open import Cubical.Algebra.Semigroup
 open import Cubical.Algebra.Monoid
 open import Cubical.Algebra.Group
-open import Cubical.Relation.Binary
+open import Cubical.Relation.Binary hiding (Rel)
 open import Cubical.HITs.SetQuotients as SQ
 
 private variable
@@ -37,13 +37,12 @@ record Span (X Y : Type ℓ) : Type (ℓ-max ℓ (ℓ-suc ℓ')) where
     src   : total → X
     tgt   : total → Y
 
-open Span public
-
 -- A graph is a span endomorphism
 Graph : (X : Type ℓ) → Type (ℓ-max ℓ (ℓ-suc ℓ'))
 Graph {ℓ' = ℓ'} X = Span {ℓ' = ℓ'} X X
 
 module _ (G : Group ℓ) where
+  open Span
   open GroupStr (str G)
 
   -- A relation is a congruence
@@ -140,6 +139,10 @@ P * = freeGroupGroup ⟨ P ⟩
 ∣ P ∣ = quotient (P *) (freeCongruenceCongruence (P *) (str P))
 
 module _ {ℓ : Level} (P : Presentation {ℓ}) where
+  open Span (str P)
+
+  -- The type of relations in the presentation
+  Rel = total
 
   -- 1-skeleton of the delooping of a presentation
   data 1Delooping : Type ℓ where
@@ -184,7 +187,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     -- The delooping of a presentation
     data Delooping : Type ℓ where
       inj : 1Delooping → Delooping
-      rel : (r : total (str P)) → cong inj (path (src (str P) r)) ≡ cong inj (path (tgt (str P) r))
+      rel : (r : Rel) → cong inj (path (src r)) ≡ cong inj (path (tgt r))
       gpd : isGroupoid Delooping
 
     pathD :
@@ -199,7 +202,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       (A : Delooping → Type ℓ)
       (Apt : A (inj ⋆))
       (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt)
-      (Arel : (r : total (str P)) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) (pathD A Apt Agen (src (str P) r)) (pathD A Apt Agen (tgt (str P) r))) →
+      (Arel : (r : Rel) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) (pathD A Apt Agen (src r)) (pathD A Apt Agen (tgt r))) →
       ((x : Delooping) → isGroupoid (A x)) → (x : Delooping) → A x
     Delooping-elim A Apt Agen Arel Agpd (inj x) = 1Delooping-elim (λ x → A (inj x)) Apt Agen x
     Delooping-elim A Apt Agen Arel Agpd (rel r i j) = Arel r i j
@@ -212,7 +215,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       (A : Delooping → Type ℓ)
       (Apt : A (inj ⋆))
       (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt)
-      (Arel : (r : total (str P)) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) (pathD A Apt Agen (src (str P) r)) (pathD A Apt Agen (tgt (str P) r))) →
+      (Arel : (r : Rel) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) (pathD A Apt Agen (src r)) (pathD A Apt Agen (tgt r))) →
       ((x : Delooping) → isGroupoid (A x)) → (x : Delooping) → A x
     Delooping-elimT = {!!}
 
@@ -279,11 +282,8 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         )
 
       -- For every base relation the source and target paths are equal in the EM-space
-      f1rel : (r : total (str P)) → cong f1 (path (src (snd P) r)) ≡ cong f1 (path (tgt (snd P) r))
-      f1rel r = pathToEM u ∙ cong emloop (eq/ _ _ (fcBase r)) ∙ sym (pathToEM v)
-        where
-        u = src (snd P) r
-        v = tgt (snd P) r
+      f1rel : (r : Rel) → cong f1 (path (src r)) ≡ cong f1 (path (tgt r))
+      f1rel r = pathToEM (src r) ∙ cong emloop (eq/ _ _ (fcBase r)) ∙ sym (pathToEM (tgt r))
 
       f : Delooping → EM₁ ∣ P ∣
       f (inj x) = f1 x
@@ -371,6 +371,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
           cong inj (gen a)              ∎
         gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (f1 (gen a i)) ≡ inj (gen a i)) refl refl
         gf-gen a i j = gf-gen' a j i
+
         -- f1rel r : cong f1 (path u) ≡ cong f1 (path v)
         -- rel r :   cong inj (path u) ≡ cong inj (path v)
 
@@ -379,13 +380,13 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
 -- i = i1 ⊢ cong inj (path (src (str P) r)) ≡
          -- cong inj (path (tgt (str P) r))
 
-        gf-rel' : (r : total (str P)) → PathP (λ i → {!gf-gen!}) (cong (cong g) (f1rel r)) (rel r)
+        gf-rel' : (r : Rel) → PathP (λ i → {!gf-gen!}) (cong (cong g) (f1rel r)) (rel r)
         gf-rel' r = {!!}
-        gf-rel : (r : total (str P)) →
+        gf-rel : (r : Rel) →
           PathP (λ i → PathP (λ j → g (f1rel r i j) ≡ rel r i j) refl refl)
           -- PathP (λ i → PathP (λ j → PathP (λ k → Delooping) (g (f1rel r i j)) (rel r i j)) refl refl)
-            (pathD (λ x → g (f x) ≡ x) refl gf-gen (src (str P) r))
-            (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt (str P) r))
+            (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
+            (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
 
 
 -- Have: {A : Type _ℓ_2328} {B : A → Type _ℓ'_2329} →
