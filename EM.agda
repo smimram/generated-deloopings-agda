@@ -187,11 +187,18 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       rel : (r : total (str P)) → cong inj (path (src (str P) r)) ≡ cong inj (path (tgt (str P) r))
       gpd : isGroupoid Delooping
 
+    pathD :
+      (A : Delooping → Type ℓ)
+      (Apt : A (inj ⋆))
+      (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt) →
+      (u : ⟨ P * ⟩) → PathP (λ i → A (inj (path u i))) Apt Apt
+    pathD A Apt Agen u = cong (1Delooping-elim (λ x → A (inj x)) Apt Agen) (path u)
+
     Delooping-elim :
       (A : Delooping → Type ℓ)
       (Apt : A (inj ⋆))
       (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt) →
-      ((r : total (str P)) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) {!!} {!!}) →
+      ((r : total (str P)) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) (pathD A Apt Agen (src (str P) r)) (pathD A Apt Agen (tgt (str P) r))) →
       ((x : Delooping) → isGroupoid (A x)) → (x : Delooping) → A x
     Delooping-elim A Apt Agen Arel Agpd (inj x) = 1Delooping-elim (λ x → A (inj x)) Apt Agen x
     Delooping-elim A Apt Agen Arel Agpd (rel r i j) = Arel r i j
