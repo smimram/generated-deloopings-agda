@@ -1,7 +1,13 @@
 {-# OPTIONS --cubical #-}
 
 --
--- Generated deloopings in Agda.
+-- Delooping with presented Eilenberg-MacLane spaces.
+--
+
+open import EM
+
+--
+-- Delooping with generated G-torsors.
 --
 
 -- Actions of groups (G-sets)
