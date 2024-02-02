@@ -375,19 +375,36 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         -- f1rel r : cong f1 (path u) ≡ cong f1 (path v)
         -- rel r :   cong inj (path u) ≡ cong inj (path v)
 
--- i = i0 ⊢ cong g (cong f1 (path (src (snd P) r))) ≡
-         -- cong g (cong f1 (path (tgt (snd P) r)))
--- i = i1 ⊢ cong inj (path (src (str P) r)) ≡
-         -- cong inj (path (tgt (str P) r))
+-- i = i0 ⊢ cong g (cong f1 (path (src r))) ≡
+         -- cong g (cong f1 (path (tgt r)))
+-- i = i1 ⊢ cong inj (path (src r)) ≡
+         -- cong inj (path (tgt r))
 
-        gf-rel' : (r : Rel) → PathP (λ i → {!gf-gen!}) (cong (cong g) (f1rel r)) (rel r)
-        gf-rel' r = {!!}
+        -- gf-rel' : (r : Rel) → PathP (λ i → {!!}) (cong (cong g) (f1rel r)) (rel r)
+        -- gf-rel' r = {!!}
+
+
+        gf-rel' : (r : Rel) → Cube
+          (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
+          (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
+          refl
+          refl
+          (cong (cong g) (f1rel r))
+          (rel r)
+        gf-rel' r =
+          isGroupoid→isGroupoid' gpd
+            (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
+            (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
+            refl
+            refl
+            (cong (cong g) (f1rel r))
+            (rel r)
         gf-rel : (r : Rel) →
           PathP (λ i → PathP (λ j → g (f1rel r i j) ≡ rel r i j) refl refl)
           -- PathP (λ i → PathP (λ j → PathP (λ k → Delooping) (g (f1rel r i j)) (rel r i j)) refl refl)
             (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
             (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
-
+        gf-rel r = gf-rel' r
 
 -- Have: {A : Type _ℓ_2328} {B : A → Type _ℓ'_2329} →
       -- ((a : A) (x y : B a) (x₁ y₁ : x ≡ y) → isProp (x₁ ≡ y₁)) →
@@ -407,9 +424,9 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
 -- k = i1 ⊢ rel r i j
 -- j = i0 ⊢ inj ⋆
 -- j = i1 ⊢ inj ⋆
--- i = i0 ⊢ 1Delooping-elim (λ x → g (f1 x) ≡ inj x) refl gf-gen (path (src (snd P) r) j) k
--- i = i1 ⊢ 1Delooping-elim (λ x → g (f1 x) ≡ inj x) refl gf-gen (path (tgt (snd P) r) j) k
-        gf-rel r = toPathP {!!}
+-- i = i0 ⊢ 1Delooping-elim (λ x → g (f1 x) ≡ inj x) refl gf-gen (path (src r) j) k
+-- i = i1 ⊢ 1Delooping-elim (λ x → g (f1 x) ≡ inj x) refl gf-gen (path (tgt r) j) k
+        -- gf-rel r = toPathP {!!}
         -- isOfHLevel→isOfHLevelDep 3 {B = λ _ → Delooping} (λ _ → gpd) {!inj ⋆!} {!!} {!!} {!!} {!!} {!!} {!!} i j k
 
       open Iso
