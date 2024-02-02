@@ -197,8 +197,8 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     Delooping-elim :
       (A : Delooping → Type ℓ)
       (Apt : A (inj ⋆))
-      (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt) →
-      ((r : total (str P)) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) (pathD A Apt Agen (src (str P) r)) (pathD A Apt Agen (tgt (str P) r))) →
+      (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt)
+      (Arel : (r : total (str P)) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) (pathD A Apt Agen (src (str P) r)) (pathD A Apt Agen (tgt (str P) r))) →
       ((x : Delooping) → isGroupoid (A x)) → (x : Delooping) → A x
     Delooping-elim A Apt Agen Arel Agpd (inj x) = 1Delooping-elim (λ x → A (inj x)) Apt Agen x
     Delooping-elim A Apt Agen Arel Agpd (rel r i j) = Arel r i j
@@ -331,19 +331,41 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
           cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) lem' ⟩
           cong inj (gen a)              ∎
 
+      -- gf : (x : Delooping) → g (f x) ≡ x
+      -- gf (inj x) = gf1 x
+      -- gf (rel r i j) = lem i j -- Delooping is a groupoid
+        -- where
+        -- -- lem : {!cong (cong g) (f1rel r)!} ≡ {!!}
+        -- -- cong inj (path (src (str P) r)) ≡ cong inj (path (tgt (str P) r))
+        -- u = src (str P) r
+        -- v = tgt (str P) r
+        -- lem' : (u : ⟨ P * ⟩) → {!g (f1 (path u)) ≡ cong inj (path u)!}
+        -- lem' u = {!!}
+        -- lem : PathP (λ i → PathP (λ j → g (f (rel r i j)) ≡ rel r i j) refl refl) {!!} {!!}
+        -- lem = {!!}
+      -- gf (gpd x y p q P Q i j k) = isOfHLevel→isOfHLevelDep 3 (λ x → (isSet→isGroupoid (gpd (g (f x)) x))) {!!} {!!} {!!} {!!} {!!} {!!} (gpd x y p q P Q) i j k -- isPropIsGroupoid (being a groupoid is a proposition)
+
       gf : (x : Delooping) → g (f x) ≡ x
-      gf (inj x) = gf1 x
-      gf (rel r i j) = lem i j -- Delooping is a groupoid
+      gf = Delooping-elim (λ x → g (f x) ≡ x)
+        refl
+        gf-gen
+        gf-rel
+        (λ x → isSet→isGroupoid (gpd (g (f x)) x))
         where
-        -- lem : {!cong (cong g) (f1rel r)!} ≡ {!!}
-        -- cong inj (path (src (str P) r)) ≡ cong inj (path (tgt (str P) r))
-        u = src (str P) r
-        v = tgt (str P) r
-        lem' : (u : ⟨ P * ⟩) → {!g (f1 (path u)) ≡ cong inj (path u)!}
-        lem' u = {!!}
-        lem : PathP (λ i → PathP (λ j → g (f (rel r i j)) ≡ rel r i j) refl refl) {!!} {!!}
-        lem = {!!}
-      gf (gpd x y p q P Q i j k) = isOfHLevel→isOfHLevelDep 3 (λ x → (isSet→isGroupoid (gpd (g (f x)) x))) {!!} {!!} {!!} {!!} {!!} {!!} (gpd x y p q P Q) i j k -- isPropIsGroupoid (being a groupoid is a proposition)
+        gf-gen-ax : (a : ⟨ P ⟩) → path (sec [ η a ]) ≡ gen a
+        gf-gen-ax = {!!}
+        gf-gen' : (a : ⟨ P ⟩) → cong g (emloop [ η a ]) ≡ cong inj (gen a)
+        gf-gen' a =
+          cong g (emloop [ η a ])       ≡⟨ refl ⟩
+          cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) (gf-gen-ax a) ⟩
+          cong inj (gen a)              ∎
+        gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (emloop [ η a ] i) ≡ inj (gen a i)) refl refl
+        gf-gen a i j = gf-gen' a j i
+        gf-rel : (r : total (str P)) →
+          PathP (λ i → PathP (λ j → g (f1rel r i j) ≡ rel r i j) refl refl)
+            (pathD (λ x → g (f x) ≡ x) refl gf-gen (src (str P) r))
+            (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt (str P) r))
+        gf-rel r = {!!}
 
       open Iso
 
