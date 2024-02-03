@@ -219,7 +219,13 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   -- with the delooping as generic Eilenberg-MacLane spaces.
   --
   -- The termination checker does not manage to check termination in pathToEM,
-  -- but it should
+  -- but it should. In the definition of pathToEM, this is precisely the
+  -- recursive call in the case of preservation of multiplication and, in fact,
+  -- termination is not problematic if we directly perform induction instead of
+  -- using FG.elimProp (which we do not want to do here in order not to have to
+  -- handle again the cases handled there which follow from the fact that we
+  -- eliminate in Prop).
+  --
   {-# TERMINATING #-}
   theorem :
     -- We have a section
