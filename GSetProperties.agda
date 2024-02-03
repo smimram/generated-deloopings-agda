@@ -55,31 +55,35 @@ isGSetHomInv {ℓ} {G} {X} {Y} (e , eEq) eHom = is-hom-h
 
 open import Cubical.Foundations.Equiv.Fiberwise
 
+-- Reformulation of equality of G-sets in components
+GSet≡Decomposed : {G : Group ℓ} (A : GSet G) → Type _
+GSet≡Decomposed {G = G} A =
+  Σ (Σ (Type _) λ B → ⟨ A ⟩ ≃ B) λ { (B , e) →
+  Σ (⟨ G ⟩ → B → B) (λ _*_ →
+  Σ (isSet B) (λ SB →
+  Σ ((x : B) → (str G).GroupStr.1g * x ≡ x) (λ unit →
+  Σ ((g1 g2 : ⟨ G ⟩) (x : B) → g1 * (g2 * x) ≡ ((str G).GroupStr._·_ g1 g2) * x) (λ comp →
+  IsGSetHom (str A) (equivFun e) (gsetstr (action _*_ SB unit comp))))))  }
+
+-- Proof that equality can be decomposed in components as above
+GSet≡Decomp : {G : Group ℓ} (A : GSet G) → Σ (GSet G) (λ B → GSetEquiv A B) ≃ GSet≡Decomposed A
+GSet≡Decomp A = compEquiv (Σ-cong-equiv-fst (Σ-cong-equiv-snd λ _ → isoToEquiv (compIso GSetStrIsoΣ ActionIsoΣ))) (compEquiv (compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → compEquiv (invEquiv Σ-assoc-≃) (compEquiv (Σ-cong-equiv-fst Σ-swap-≃) Σ-assoc-≃))) (compEquiv (invEquiv Σ-assoc-≃) (Σ-cong-equiv-snd λ _ → compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → Σ-assoc-≃)))))
+
 -- Paths between G-sets correspond to equivalences.
 GSetPath' : {G : Group ℓ} {X Y : GSet G} → (X ≡ Y) ≃ (GSetEquiv X Y)
 GSetPath' {ℓ} {G} {X} {Y} = fundamentalTheoremOfId GSetEquiv (λ A → idGSetEquiv {X = A}) contr X Y
   where
   contr : (A : GSet G) → isContr (Σ (GSet G) (λ B → GSetEquiv A B))
-  contr A = subst isContr (sym (ua lem)) lem'
+  contr A = subst isContr (sym (ua (GSet≡Decomp A))) lem'
     where
-    decomposedEqualGSet : {G : Group ℓ} {A : GSet G} → Type _
-    decomposedEqualGSet {G = G} {A = A} =
-      Σ (Σ (Type _) λ B → ⟨ A ⟩ ≃ B) λ { (B , e) →
-      Σ (⟨ G ⟩ → B → B) (λ _*_ →
-      Σ (isSet B) (λ SB →
-      Σ ((x : B) → (str G).GroupStr.1g * x ≡ x) (λ unit →
-      Σ ((g1 g2 : ⟨ G ⟩) (x : B) → g1 * (g2 * x) ≡ ((str G).GroupStr._·_ g1 g2) * x) (λ comp →
-      IsGSetHom (str A) (equivFun e) (gsetstr (action _*_ SB unit comp))))))  }
-
-    lem : Σ (GSet G) (λ B → GSetEquiv A B) ≃ decomposedEqualGSet {G = G} {A = A}
-    lem = compEquiv (Σ-cong-equiv-fst (Σ-cong-equiv-snd λ _ → isoToEquiv (compIso GSetStrIsoΣ ActionIsoΣ))) (compEquiv (compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → compEquiv (invEquiv Σ-assoc-≃) (compEquiv (Σ-cong-equiv-fst Σ-swap-≃) Σ-assoc-≃))) (compEquiv (invEquiv Σ-assoc-≃) (Σ-cong-equiv-snd λ _ → compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → compEquiv Σ-assoc-≃ (Σ-cong-equiv-snd λ _ → Σ-assoc-≃)))))
+    -- Singleton types (up to equivalence) are contractible
     isContrSingl≃ : (A : Type ℓ) → isContr (Σ (Type ℓ) λ B → A ≃ B)
     isContrSingl≃ A = (A , idEquiv A) , λ { (B , e) → ΣPathP (ua e , toPathP (tsp (ua e) ∙ pathToEquiv-ua e)) }
       where
       tsp : {B : Type ℓ} (p : A ≡ B) → subst (λ B → A ≃ B) p (idEquiv A) ≡ pathToEquiv p
       tsp = J (λ B p → subst (λ B → A ≃ B) p (idEquiv A) ≡ pathToEquiv p) (sym (pathToEquivRefl ∙ sym (substRefl {B = λ B → A ≃ B} (idEquiv A))))
 
-    lem' : isContr (decomposedEqualGSet {G = G} {A = A})
+    lem' : isContr (GSet≡Decomposed A)
     lem' = isContrΣ (isContrSingl≃ ⟨ A ⟩) (λ (B , e) → lem'' B e)
       where
       lem'' : (B : Type ℓ) (e : ⟨ A ⟩ ≃ B) → isContr ( Σ (⟨ G ⟩ → B → B) (λ _*_ →
