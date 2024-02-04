@@ -36,10 +36,8 @@ private
   variable
     ℓ : Level
 
-module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
-  open generators {G = G} {X = X} {ι = ι}
+module _ {X : hSet ℓ} {G : Group ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : generates {X = X} {G = G} γ) where
   open principal-torsor
-  module _ {gen : ι-generates} where
 
   -- Delooping by torsors
   BG : Pointed (ℓ-suc ℓ)
@@ -51,7 +49,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} {ι : ⟨ X ⟩ → ⟨ G ⟩} where
 
   -- The principal X-torsor
   PX : XSet X
-  PX = U {G = G} ι PG
+  PX = U {G = G} γ PG
 
   -- The alternative delooping by X-torsors
   BG' : Pointed (ℓ-suc ℓ)
