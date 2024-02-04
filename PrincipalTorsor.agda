@@ -18,21 +18,15 @@ open import Cubical.HITs.FreeGroup renaming (_·_ to _·f_)
 open import GSet
 open import GSetProperties
 
-private
-  variable
-    ℓ : Level
-
-module _ {G : Group ℓ} where
+-- The principal G-torsor
+Principal : {ℓ : Level} (G : Group ℓ) → GSet G
+Principal {ℓ} G = ⟨ G ⟩ , gsetstr a
+  where
   open GroupStr (str G)
-
-  -- The principal G-torsor
-  PG : GSet G
-  PG = ⟨ G ⟩ , gsetstr a
-    where
-    a : Action {ℓ} G ⟨ G ⟩
-    a = record {
-      _*_ = _·_ ;
-      is-set = is-set ;
-      ·Unit = ·IdL ;
-      ·Composition = ·Assoc
-      }
+  a : Action {ℓ} G ⟨ G ⟩
+  a = record {
+    _*_ = _·_ ;
+    is-set = is-set ;
+    ·Unit = ·IdL ;
+    ·Composition = ·Assoc
+    }

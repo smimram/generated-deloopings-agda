@@ -31,13 +31,11 @@ open import XSetProperties
 open import Comp
 open import PrincipalTorsor
 
-
-private
-  variable
-    ℓ : Level
+private variable
+  ℓ : Level
 
 module _ {X : hSet ℓ} {G : Group ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : generates {X = X} {G = G} γ) where
-  open principal-torsor
+  PG = Principal G
 
   -- Delooping by torsors
   BG : Pointed (ℓ-suc ℓ)
@@ -61,15 +59,15 @@ module _ {X : hSet ℓ} {G : Group ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
     where
     open Iso
     open GroupStr (str G)
-    m≃ : ⟨ G ⟩ → GSetEquiv (PG {G = G}) PG
+    m≃ : ⟨ G ⟩ → GSetEquiv PG PG
     m≃ x = (isoToEquiv e , makeIsGSetEquiv {G = G} λ y z → sym (·Assoc _ _ _))
       where
-      e : Iso ⟨ PG {G = G} ⟩ ⟨ PG {G = G} ⟩
+      e : Iso ⟨ PG ⟩ ⟨ PG ⟩
       fun e y = y · x
       Iso.inv e y = y · GroupStr.inv (str G) x
       rightInv e y = sym (·Assoc _ _ _) ∙ cong (λ x → y · x) (·InvL x) ∙ ·IdR y
       leftInv  e y = sym (·Assoc _ _ _) ∙ cong (λ x → y · x) (·InvR x) ∙ ·IdR y
-    m : ⟨ G ⟩ → PG {G = G} ≡ PG
+    m : ⟨ G ⟩ → PG ≡ PG
     m x = GSetUA (m≃ x)
     f : (PG ≡ PG) → ⟨ G ⟩
     f p = transport (cong fst p) 1g
@@ -119,7 +117,7 @@ module _ {X : hSet ℓ} {G : Group ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
     pres1 gh =
       f (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G))))                       ≡⟨ refl ⟩
       transport (cong fst (GroupStr.1g (str (π₁ (GSet G , PG) (isGroupoidGSet G))))) 1g ≡⟨ refl ⟩
-      transport (cong fst (refl {x = PG {G = G}})) 1g                                   ≡⟨ refl ⟩
+      transport (cong fst (refl {x = PG})) 1g                                   ≡⟨ refl ⟩
       transport (refl {x = ⟨ G ⟩}) 1g                                                   ≡⟨ transportRefl 1g ⟩
       1g                                                                                ∎
     presinv gh p = GroupTheory.invUniqueL G {g = f (sym p)} {h = f p} (
@@ -130,7 +128,7 @@ module _ {X : hSet ℓ} {G : Group ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
       transport (cong fst p) (transport (cong fst (sym p)) 1g) ≡⟨ transportTransport⁻ (cong fst p) 1g ⟩
       1g                                                       ∎)
         where
-        naturality : (p : PG {G = G} ≡ PG) (x y : ⟨ G ⟩) → x · transport (cong fst p) y ≡ transport (cong fst p) (x · y)
+        naturality : (p : PG ≡ PG) (x y : ⟨ G ⟩) → x · transport (cong fst p) y ≡ transport (cong fst p) (x · y)
         naturality p x y = sym (equivFun GSetPath p .snd .IsGSetHom.pres* x y)
 
   -- The fundamental group of BG is G as expected

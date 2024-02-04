@@ -93,19 +93,20 @@ postulate
 
 module _ (G : Group ℓ) (X : hSet ℓ) (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : generates {X = X} {G = G} γ) where
   open GroupStr (str G)
-  open principal-torsor {G = G}
   open IsGroupHom
   γ* = freeGHom {X = X} {G = G} γ .fst
   γ*GH = freeGHom {X = X} {G = G} γ .snd
-  α = str PG .GSetStr.ϕ
+  P = Principal
+  α = str (P G) .GSetStr.ϕ
   [α] = α .Action._*_
   isSetG : isSet ⟨ G ⟩
   isSetG = α .Action.is-set
 
   -- One of our main results: the loop space of PG is the same as the loop space of PX
-  theorem : (PG ≡ PG) ≃ (U {X = X} γ PG ≡ U γ PG)
+  theorem : (P G ≡ P G) ≃ (U {X = X} {G = G} γ (P G) ≡ U γ (P G))
   theorem = compEquiv (GSet≡≃Σ PG PG) (compEquiv (isoToEquiv isoΣ) (invEquiv (XSet≡≃Σ (U γ PG) (U γ PG))))
     where
+    PG = Principal G
     isoΣ : Iso (GSet≡Σ PG PG) (XSet≡Σ {X = X} (U γ PG) (U γ PG))
     Iso.fun isoΣ (p , q) = p , λ x a → q (γ x) a
     Iso.inv isoΣ (p , q) = p , λ x a → comm x a
