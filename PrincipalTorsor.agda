@@ -22,17 +22,17 @@ private
   variable
     ℓ : Level
 
-module principal-torsor {G : Group ℓ} where
+module _ {G : Group ℓ} where
   open GroupStr (str G)
-  left-action : Action {ℓ} G ⟨ G ⟩
-  left-action = record {
-    _*_ = _·_ ;
-    is-set = is-set ;
-    ·Unit = ·IdL ;
-    ·Composition = ·Assoc
-    }
 
   -- The principal G-torsor
   PG : GSet G
-  PG = ⟨ G ⟩ , gsetstr left-action
-
+  PG = ⟨ G ⟩ , gsetstr a
+    where
+    a : Action {ℓ} G ⟨ G ⟩
+    a = record {
+      _*_ = _·_ ;
+      is-set = is-set ;
+      ·Unit = ·IdL ;
+      ·Composition = ·Assoc
+      }
