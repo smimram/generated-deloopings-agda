@@ -18,6 +18,20 @@ open import Cubical.HITs.SetQuotients as SQ
 private variable
   ℓ ℓ' : Level
 
+module _ (G : Group ℓ) where
+  open GroupStr (str G)
+  open import Cubical.HITs.EilenbergMacLane1 as EM
+
+  -- An aside: preservation of identities is automatic in Eilenberg-MacLane spaces
+  loop-id : emloop 1g ≡ refl
+  loop-id =
+    emloop 1g                              ≡⟨ lUnit (emloop 1g) ⟩
+    refl ∙ emloop 1g                       ≡⟨ cong (_∙ emloop 1g) (sym (lCancel (emloop 1g)) ) ⟩
+    (emloop 1g ⁻¹ ∙ emloop 1g) ∙ emloop 1g ≡⟨ sym (assoc _ _ _) ⟩
+    emloop 1g ⁻¹ ∙ (emloop 1g ∙ emloop 1g) ≡⟨ cong (sym (emloop 1g) ∙_) (sym (emloop-comp G 1g 1g) ∙ cong emloop (·IdL 1g)) ⟩
+    emloop 1g ⁻¹ ∙ emloop 1g               ≡⟨ rCancel _ ⟩
+    refl                                   ∎
+
 -- Variant of substInPaths
 subst2≡ : {A : Type ℓ} {x x' y y' : A} (p : x ≡ x') (q : y ≡ y') (r : x ≡ y) → subst2 _≡_ p q r ≡ sym p ∙ r ∙ q
 subst2≡ p q r = J (λ _ p → subst2 _≡_ p q r ≡ sym p ∙ r ∙ q) lem p
