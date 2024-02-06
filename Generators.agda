@@ -36,5 +36,5 @@ module _ {X : hSet ℓ} {G : Group ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) where
   strongly-generates = Σ (⟨ G ⟩ → freeGroupGroup ⟨ X ⟩ .fst) (λ σ → (g : ⟨ G ⟩) → freeGHom .fst (σ g) ≡ g)
 
   -- Strong generation implies generation
-  sg→g : strongly-generates → generates
-  sg→g (f , sec) g = ∣ f g , sec g ∣₁
+  sg-g : strongly-generates → generates
+  sg-g (f , sec) g = ∣ f g , sec g ∣₁
