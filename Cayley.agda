@@ -23,11 +23,11 @@ data Coeq {A : Type ℓ} {B : Type ℓ'} (f g : A → B) : Type (ℓ-max ℓ ℓ
   coeq : (a : A) → incl (f a) ≡ incl (g a)
 
 -- Flattening for coequalizers
-module FlatteningLemma {A : Type ℓ} {B : Type ℓ'} (f g : A → B) (P : B → Type ℓ'') (p : (a : A) → P (f a) ≡ P (g a)) where
+module FlatteningLemma {A : Type ℓ} {B : Type ℓ'} (f g : A → B) (P : B → Type ℓ'') (p : (a : A) → P (f a) ≃ P (g a)) where
 
   P' : Coeq f g → Type ℓ''
   P' (incl x)   = P x
-  P' (coeq a i) = p a i
+  P' (coeq a i) = ua (p a) i
 
   ΣAP = Σ A (P ∘ f)
 
@@ -35,7 +35,7 @@ module FlatteningLemma {A : Type ℓ} {B : Type ℓ'} (f g : A → B) (P : B →
   Σf (a , x) = f a , x
 
   Σg : ΣAP → Σ B P
-  Σg (a , x) = g a , transport (p a) x
+  Σg (a , x) = g a , equivFun (p a) x
 
   postulate
     -- See the HoTT book, section 6.12
@@ -74,8 +74,8 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
 
     -- Σf : Σ X (P ∘ f) → Σ 1 P
 
-    eq : ⟨ X ⟩ → (embase ≡ embase) ≡ (embase ≡ embase)
-    eq a = ua (compPathrEquiv (emloop (γ a)))
+    eq : ⟨ X ⟩ → (embase ≡ embase) ≃ (embase ≡ embase)
+    eq a = compPathrEquiv (emloop (γ a))
 
     open FlatteningLemma f g (λ _ → embase ≡ embase) eq
 
@@ -95,21 +95,12 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
       open Iso
       e : Iso Cayley (Coeq Σf Σg)
       fun e (vertex u) = incl (tt , G→EM u)
-      fun e (edge u x i) = {!!}
-      -- lem i
+      fun e (edge u x i) = lem i
         where
-        lem'' : PathP (λ j → embase ≡ transport⁻ (ΩEM₁≡ G) (γ x) j) (G→EM u) (G→EM u ∙ G→EM (γ x))
-        lem'' = compPath-filler (transport⁻ (ΩEM₁≡ G) u) (G→EM (γ x))
-        lem' : PathP (λ j → embase ≡ transport⁻ (ΩEM₁≡ G) (γ x) j) (transport⁻ (ΩEM₁≡ G) u) (transport⁻ (ΩEM₁≡ G) (u · γ x))
-        lem' = {!!}
-        -- lem : PathP (λ j → {!Coeq f g!}) (incl (tt , transport⁻ (ΩEM₁≡ G) u)) (incl (tt , transport⁻ (ΩEM₁≡ G) (u · γ x)))
-        -- lem = {!!}
-        -- lem'' : transport⁻ (ΩEM₁≡ G) u ≡ transport⁻ (ΩEM₁≡ G) u ∙ transport⁻ (ΩEM₁≡ G) (γ x)
-        -- lem'' = {!!}
-        -- lem' : transport⁻ (ΩEM₁≡ G) u ≡ transport⁻ (ΩEM₁≡ G) (u · γ x)
-        -- lem' = {!!}
-        -- lem : incl (tt , transport⁻ (ΩEM₁≡ G) u) ≡ incl (tt , transport⁻ (ΩEM₁≡ G) (u · γ x))
-        -- lem = cong incl (ΣPathP (refl , lem'))
+        lem' : _≡_ {A = Coeq Σf Σg} (incl (tt , G→EM u)) (incl (tt , equivFun (eq x) (G→EM u)))
+        lem' = coeq (x , (G→EM u)) 
+        lem : incl (tt , G→EM u) ≡ incl (tt , G→EM (u · γ x))
+        lem = lem' ∙ cong {!λ x → incl (tt , x)!} {!!}
       inv e (incl (tt , p)) = vertex (EM→G p)
       inv e (coeq (x , p) i) = lem i
         where
@@ -117,9 +108,9 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
         lem'' = edge (EM→G p) x
         lem' : vertex (EM→G p) ≡ vertex (EM→G (p ∙ emloop (γ x)))
         lem' = lem'' ∙ cong (λ u → vertex (EM→G p · u)) (sym (EM→G-emloop (γ x))) ∙ cong vertex (sym (EM→G∙ p (emloop (γ x))))
-        transport-eq : transport (eq x) p ≡ p ∙ emloop (γ x)
-        transport-eq = uaβ (compPathrEquiv (emloop (γ x))) p -- TODO: we could avoid uaβ by having eq an equivalence
-        lem : vertex (EM→G p) ≡ vertex (EM→G (transport (eq x) p))
+        transport-eq : equivFun (eq x) p ≡ p ∙ emloop (γ x)
+        transport-eq = refl
+        lem : vertex (EM→G p) ≡ vertex (EM→G (equivFun (eq x) p))
         lem = lem' ∙ sym (cong vertex (cong EM→G transport-eq))
       -- cong vertex lem i
         -- where
@@ -150,7 +141,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
       rightInv e (coeq x i) = refl
       leftInv e base = refl
       leftInv e (loop x i) = refl
-    equiv : (x : Coeq f g) → FlatteningLemma.P' f g (λ _ → embase ≡ embase) (λ a → ua (compPathrEquiv (emloop (γ a)))) x ≃ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) x))
+    equiv : (x : Coeq f g) → FlatteningLemma.P' f g (λ _ → embase ≡ embase) eq x ≃ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) x))
     equiv (incl tt) = idEquiv _
     equiv (coeq x i) = {!!}
 
