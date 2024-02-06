@@ -117,8 +117,10 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
         lem'' = edge (EM→G p) x
         lem' : vertex (EM→G p) ≡ vertex (EM→G (p ∙ emloop (γ x)))
         lem' = lem'' ∙ cong (λ u → vertex (EM→G p · u)) (sym (EM→G-emloop (γ x))) ∙ cong vertex (sym (EM→G∙ p (emloop (γ x))))
-        lem : vertex (EM→G p) ≡ vertex (EM→G (snd (g x , transport (eq x) p))) -- Σg (x , p)
-        lem = {!!}
+        transport-eq : transport (eq x) p ≡ p ∙ emloop (γ x)
+        transport-eq = uaβ (compPathrEquiv (emloop (γ x))) p -- TODO: we could avoid uaβ by having eq an equivalence
+        lem : vertex (EM→G p) ≡ vertex (EM→G (transport (eq x) p))
+        lem = lem' ∙ sym (cong vertex (cong EM→G transport-eq))
       -- cong vertex lem i
         -- where
         -- lem : EM→G p ≡ EM→G (transport (ua (compPathrEquiv (emloop (γ x)))) p) -- (p ∙ emloop (γ x))
