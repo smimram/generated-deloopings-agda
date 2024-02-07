@@ -37,3 +37,8 @@ open import PrincipalTorsor
 -- Delooping by (generated) torsors
 open import Deloopings
 
+--
+-- Cayley graphs
+--
+
+open import Cayley

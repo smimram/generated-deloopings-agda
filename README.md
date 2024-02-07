@@ -47,3 +47,9 @@ online](https://smimram.github.io/generated-deloopings-agda/).
   - Delooping by torsors (classical construction and proof)
   - Delooping by generated torsors
   - Caracterisation of the Principal torsor's Aut group
+
+## Cayley graphs
+
+- [`Cayley`](Cayley.agda)
+  - Definition of Cayley graphs
+  - Proof that the Cayley graph is the kernel of the map BX* → BG
