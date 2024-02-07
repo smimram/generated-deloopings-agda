@@ -1,6 +1,8 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 
 module Coeq where
+
+-- The standard library unfortunately does not have coequalisers. Add them.
 
 open import Cubical.Foundations.Everything
 open import Cubical.Data.Sigma
@@ -30,15 +32,36 @@ module _ {A A' : Type ℓ} {B B' : Type ℓ'} (f g : A → B) (f' g' : A' → B'
 
   open CoeqHom
 
+  -- Morphism induced by a morphism of coequalizer diagrams.
   CoeqHom→ : CoeqHom → Coeq f g → Coeq f' g'
   CoeqHom→ ϕ (incl b) = incl (ϕ .hom-incl b)
   CoeqHom→ ϕ (coeq a i) = lem i
     where
-    lem : incl (ϕ .hom-incl (f a)) ≡ incl (ϕ .hom-incl (g a))
-    lem = cong incl {!!}
+    hA = ϕ .hom-coeq
+    hB = ϕ .hom-incl
+    lem : incl (hB (f a)) ≡ incl (hB (g a))
+    lem =
+      incl (hB (f a))  ≡⟨ cong incl (ϕ .hom-f a) ⟩
+      incl (f' (hA a)) ≡⟨ coeq (hA a) ⟩
+      incl (g' (hA a)) ≡⟨ sym (cong incl (ϕ .hom-g a)) ⟩
+      incl (hB (g a))  ∎
 
   CoeqEquiv : Type (ℓ-max ℓ ℓ')
   CoeqEquiv = Σ CoeqHom λ h → isEquiv (h .hom-incl) × isEquiv (h .hom-coeq)
 
-  Coeq≃ : CoeqEquiv → Coeq f g ≃ Coeq f' g'
-  Coeq≃ = {!!}
+-- module _ {A A' : Type ℓ} {B B' : Type ℓ'} (f g : A → B) (f' g' : A' → B') where
+  -- CoeqInvEquiv : CoeqEquiv f g f' g' → CoeqEquiv f' g' f g
+  -- CoeqInvEquiv (h , hBe , hAe) = k , {!!} , {!!}
+    -- where
+    -- open CoeqHom
+    -- k : CoeqHom f' g' f g
+    -- hom-incl k = invEq (_ , hBe)
+    -- hom-coeq k = invEq (_ , hAe)
+    -- hom-f k a = {!invEq (h .hom-incl , hBe) (f' a) ≡
+      -- f (invEq (h .hom-coeq , hAe) a) ∎!}
+    -- hom-g k = {!!}
+
+  postulate
+    -- Assuming this classical result: an isomorphism of coequalizer diagrams
+    -- induces an insomorphism between the corresponding coequalizers.
+    Coeq≃ : CoeqEquiv → Coeq f g ≃ Coeq f' g'
