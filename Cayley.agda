@@ -1,5 +1,9 @@
 {-# OPTIONS --cubical #-}
 
+---
+--- Cayley graphs in homotopy type theory
+---
+
 open import Cubical.Foundations.Everything
 open import Cubical.Algebra.Group
 open import Cubical.Data.Unit
