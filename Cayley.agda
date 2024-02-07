@@ -171,6 +171,20 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
       leftInv e base = refl
       leftInv e (loop x i) = refl
 
+    -- The formulation of substInPaths in previous versions of the standard
+    -- library was not generic enough wrt universe levels.
+    substInPaths' : ∀ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'}  {a a' : A}
+                 → (f g : A → B) → (p : a ≡ a') (q : f a ≡ g a)
+                 → subst (λ x → f x ≡ g x) p q ≡ sym (cong f p) ∙ q ∙ cong g p
+    substInPaths' {a = a} f g p q =
+      J (λ x p' → (subst (λ y → f y ≡ g y) p' q) ≡ (sym (cong f p') ∙ q ∙ cong g p')) p=refl p
+      where
+      p=refl : subst (λ y → f y ≡ g y) refl q ≡ refl ∙ q ∙ refl
+      p=refl =
+        subst (λ y → f y ≡ g y) refl q ≡⟨ substRefl {B = (λ y → f y ≡ g y)} q ⟩
+        q                              ≡⟨ (rUnit q) ∙ lUnit (q ∙ refl) ⟩
+        refl ∙ q ∙ refl ∎
+
     -- Reformulating compPathrEquiv
     congCompPathrEquiv : {ℓ : Level} {A : Type ℓ} {x y z : A} (p : y ≡ z) → ua (compPathrEquiv p) ≡ cong (λ y → x ≡ y) p
     congCompPathrEquiv {x = x} {y = y} = J (λ z p → ua (compPathrEquiv p) ≡ cong (λ y → x ≡ y) p) lem
@@ -191,7 +205,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
       lem' : (x : ⟨ X ⟩) → transport (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x)) refl ≡ refl
       lem' x =
         transport (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x)) refl ≡⟨ refl ⟩
-        subst (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x) refl ≡⟨ substInPaths (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) refl ⟩
+        subst (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x) refl ≡⟨ substInPaths' (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) refl ⟩
         sym (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (coeq x)) ∙ refl ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) ≡⟨ cong₂ _∙_ refl (sym (lUnit _)) ⟩
         sym (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (coeq x)) ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) ≡⟨ refl ⟩
         sym (ua (eq x)) ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x)                  ≡⟨ refl ⟩
