@@ -79,15 +79,19 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
 
     open FlatteningLemma f g (λ _ → embase ≡ embase) eq
 
-    G→EM : ⟨ G ⟩ → embase ≡ embase
-    G→EM = transport⁻ (ΩEM₁≡ G)
+    ΩEM≃G : (embase ≡ embase) ≃ ⟨ G ⟩
+    ΩEM≃G = isoToEquiv (ΩEM₁Iso G)
 
     EM→G : embase ≡ embase → ⟨ G ⟩
-    EM→G = transport (ΩEM₁≡ G)
+    EM→G = equivFun ΩEM≃G
+
+    G→EM : ⟨ G ⟩ → embase ≡ embase
+    G→EM = invEq ΩEM≃G
 
     postulate
       EM→G-emloop : (u : ⟨ G ⟩) → EM→G (emloop u) ≡ u
       EM→G∙ : (p q : embase ≡ embase) → EM→G (p ∙ q) ≡ EM→G p · EM→G q
+      G→EM∙ : (u v : ⟨ G ⟩) → G→EM u ∙ G→EM v ≡ G→EM (u · v)
 
     Cayley≃Σ : Cayley ≃ Coeq Σf Σg
     Cayley≃Σ = isoToEquiv e
@@ -97,10 +101,10 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
       fun e (vertex u) = incl (tt , G→EM u)
       fun e (edge u x i) = lem i
         where
-        lem' : _≡_ {A = Coeq Σf Σg} (incl (tt , G→EM u)) (incl (tt , equivFun (eq x) (G→EM u)))
-        lem' = coeq (x , (G→EM u)) 
-        lem : incl (tt , G→EM u) ≡ incl (tt , G→EM (u · γ x))
-        lem = lem' ∙ cong {!λ x → incl (tt , x)!} {!!}
+        lem =
+          incl (tt , G→EM u)                   ≡⟨ coeq (x , (G→EM u)) ⟩
+          incl (tt , equivFun (eq x) (G→EM u)) ≡⟨ cong (λ x → incl (tt , x)) (G→EM∙ u (γ x)) ⟩
+          incl (tt , G→EM (u · γ x))           ∎
       inv e (incl (tt , p)) = vertex (EM→G p)
       inv e (coeq (x , p) i) = lem i
         where
@@ -112,13 +116,9 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
         transport-eq = refl
         lem : vertex (EM→G p) ≡ vertex (EM→G (equivFun (eq x) p))
         lem = lem' ∙ sym (cong vertex (cong EM→G transport-eq))
-      -- cong vertex lem i
-        -- where
-        -- lem : EM→G p ≡ EM→G (transport (ua (compPathrEquiv (emloop (γ x)))) p) -- (p ∙ emloop (γ x))
-        -- lem = {!!}
-      rightInv e (incl (tt , x)) = cong incl (ΣPathP (refl , (transport⁻Transport (ΩEM₁≡ G) x)))
+      rightInv e (incl (tt , x)) = cong incl (ΣPathP (refl , retEq ΩEM≃G x))
       rightInv e (coeq a i) = {!!}
-      leftInv e (vertex x) = cong vertex (transportTransport⁻ (ΩEM₁≡ G) x)
+      leftInv e (vertex x) = cong vertex (secEq ΩEM≃G x)
       leftInv e (edge u x i) = {!!}
 
     BX*→Coeq : BX* → Coeq f g
@@ -144,6 +144,3 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
     equiv : (x : Coeq f g) → FlatteningLemma.P' f g (λ _ → embase ≡ embase) eq x ≃ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) x))
     equiv (incl tt) = idEquiv _
     equiv (coeq x i) = {!!}
-
-
-
