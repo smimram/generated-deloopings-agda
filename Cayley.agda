@@ -100,13 +100,13 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
     f _ = tt
     g = f
 
-    -- -- Σf : Σ X (P ∘ f) → Σ 1 P
-
     eq : ⟨ X ⟩ → (embase ≡ embase) ≃ (embase ≡ embase)
     eq a = compPathrEquiv (emloop (γ a))
 
+    -- Apply the flattening lemma
     open FlatteningLemma f g (λ _ → embase ≡ embase) eq
 
+    -- Equivalence between the loop space of EM and G
     ΩEM≃G : (embase ≡ embase) ≃ ⟨ G ⟩
     ΩEM≃G = isoToEquiv (ΩEM₁Iso G)
 
@@ -117,10 +117,13 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
     G→EM = invEq ΩEM≃G
 
     postulate
-      EM→G-emloop : (u : ⟨ G ⟩) → EM→G (emloop u) ≡ u
-      -- EM→G∙ : (p q : embase ≡ embase) → EM→G (p ∙ q) ≡ EM→G p · EM→G q
+      -- The equivalence between the loop space of EM and G is actually a group
+      -- equivalence. This does classical fact does not seem to be proved in the
+      -- standard library, admit it.
       G→EM∙ : (u v : ⟨ G ⟩) → G→EM u ∙ G→EM v ≡ G→EM (u · v)
 
+    -- Compare the natural reformulation of Cayley as a coequalizer and the one
+    -- we get from flattening.
     Coeq1≃Coeq : Coeq f1 g1 ≃ Coeq Σf Σg
     Coeq1≃Coeq = Coeq≃ f1 g1 Σf Σg (h , snd (isoToEquiv h0) , snd (isoToEquiv h1))
       where
@@ -153,6 +156,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
           equivFun (eq x) (G→EM u) ≡⟨ refl ⟩
           equivFun (eq x) (G→EM u) ∎
 
+    -- BX* as a coequalizer
     BX*≃Coeq : BX* ≃ Coeq f g
     BX*≃Coeq = isoToEquiv e
       where
@@ -167,6 +171,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
       leftInv e base = refl
       leftInv e (loop x i) = refl
 
+    -- Reformulating compPathrEquiv
     congCompPathrEquiv : {ℓ : Level} {A : Type ℓ} {x y z : A} (p : y ≡ z) → ua (compPathrEquiv p) ≡ cong (λ y → x ≡ y) p
     congCompPathrEquiv {x = x} {y = y} = J (λ z p → ua (compPathrEquiv p) ≡ cong (λ y → x ≡ y) p) lem
       where
@@ -175,6 +180,8 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
       lem : ua (compPathrEquiv refl) ≡ refl
       lem = cong ua lem' ∙ uaIdEquiv
 
+    -- Reformulation of P' through the equivalence BX*≃Coeq. Nothing very deep
+    -- here.
     equiv : (x : Coeq f g) → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq x ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) x))
     equiv = Coeq.elim f g
       (λ x → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq x ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) x)))
@@ -185,15 +192,15 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
       lem' x =
         transport (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x)) refl ≡⟨ refl ⟩
         subst (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x) refl ≡⟨ substInPaths (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) refl ⟩
-        sym (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (coeq x)) ∙ refl ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) ≡⟨ {!!} ⟩ -- refl is neutral for ∙
+        sym (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (coeq x)) ∙ refl ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) ≡⟨ cong₂ _∙_ refl (sym (lUnit _)) ⟩
         sym (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (coeq x)) ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) ≡⟨ refl ⟩
-        sym (ua (eq x)) ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) ≡⟨ refl ⟩
+        sym (ua (eq x)) ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x)                  ≡⟨ refl ⟩
         sym (ua (eq x)) ∙ cong (λ m → embase ≡ m) (cong (λ c → Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x)) ≡⟨ refl ⟩
-        sym (ua (eq x)) ∙ cong (λ m → embase ≡ m) (cong Bγ* (cong (equivFun (invEquiv BX*≃Coeq)) (coeq x))) ≡⟨ refl ⟩
-        sym (ua (eq x)) ∙ cong (λ m → embase ≡ m) (cong Bγ* (loop x)) ≡⟨ refl ⟩
-        sym (ua (compPathrEquiv (emloop (γ x)))) ∙ cong (λ m → embase ≡ m) (cong Bγ* (loop x)) ≡⟨ {!!} ⟩ -- congCompPathrEquiv
-        sym (cong (λ m → embase ≡ m) (emloop (γ x))) ∙ cong (λ m → embase ≡ m) (emloop (γ x)) ≡⟨ lCancel _ ⟩
-        refl ∎
+        sym (ua (eq x)) ∙ cong (λ m → embase ≡ m) (cong Bγ* (cong (equivFun (invEquiv BX*≃Coeq)) (coeq x)))    ≡⟨ refl ⟩
+        sym (ua (eq x)) ∙ cong (λ m → embase ≡ m) (cong Bγ* (loop x))                                          ≡⟨ refl ⟩
+        sym (ua (compPathrEquiv (emloop (γ x)))) ∙ cong (λ m → embase ≡ m) (cong Bγ* (loop x))                 ≡⟨ cong₂ _∙_ (cong sym (congCompPathrEquiv _)) refl ⟩
+        sym (cong (λ m → embase ≡ m) (emloop (γ x))) ∙ cong (λ m → embase ≡ m) (emloop (γ x))                  ≡⟨ lCancel _ ⟩
+        refl                                                                                                   ∎
       lem : (x : ⟨ X ⟩) → PathP
         (λ i → cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x) i)
         refl
