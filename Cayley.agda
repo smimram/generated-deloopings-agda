@@ -118,7 +118,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
 
     postulate
       -- The equivalence between the loop space of EM and G is actually a group
-      -- equivalence. This does classical fact does not seem to be proved in the
+      -- isomorphism. This does classical fact does not seem to be proved in the
       -- standard library, admit it.
       G→EM∙ : (u v : ⟨ G ⟩) → G→EM u ∙ G→EM v ≡ G→EM (u · v)
 
