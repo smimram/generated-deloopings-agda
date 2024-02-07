@@ -17,10 +17,17 @@ private variable
 ker : {A : Type ℓ} {B : Pointed ℓ'} (f : A → ⟨ B ⟩) → Type _
 ker {A = A} {B = B} f = Σ A λ a → f a ≡ pt B
 
--- Coequalizer of two maps
-data Coeq {A : Type ℓ} {B : Type ℓ'} (f g : A → B) : Type (ℓ-max ℓ ℓ') where
-  incl : B → Coeq f g
-  coeq : (a : A) → incl (f a) ≡ incl (g a)
+module _ {A : Type ℓ} {B : Type ℓ'} (f g : A → B) where
+
+  -- Coequalizer of two maps
+  data Coeq : Type (ℓ-max ℓ ℓ') where
+    incl : B → Coeq
+    coeq : (a : A) → incl (f a) ≡ incl (g a)
+
+  -- Elimination principle for coequalizers
+  Coeq-elim : (C : Coeq → Type ℓ'') (Ci : (b : B) → C (incl b)) (Ce : (a : A) → PathP (λ i → cong C (coeq a) i) (Ci (f a)) (Ci (g a))) (x : Coeq) → C x
+  Coeq-elim C Ci Ce (incl b) = Ci b
+  Coeq-elim C Ci Ce (coeq a i) = Ce a i
 
 -- Flattening for coequalizers
 module FlatteningLemma {A : Type ℓ} {B : Type ℓ'} (f g : A → B) (P : B → Type ℓ'') (p : (a : A) → P (f a) ≃ P (g a)) where
@@ -38,7 +45,8 @@ module FlatteningLemma {A : Type ℓ} {B : Type ℓ'} (f g : A → B) (P : B →
   Σg (a , x) = g a , equivFun (p a) x
 
   postulate
-    -- See the HoTT book, section 6.12
+    -- See the HoTT book, section 6.12. The cubical library unfortunately only
+    -- contains a proof of the flattening lemma for pushouts (which is similar).
     flatten : Σ (Coeq f g) P' ≃ Coeq Σf Σg
 
 module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : generates {X = X} {G = G} γ) where
@@ -59,6 +67,18 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
   data Cayley : Type ℓ where
     vertex : ⟨ G ⟩ → Cayley
     edge   : (g : ⟨ G ⟩) (x : ⟨ X ⟩) → vertex g ≡ vertex (g · γ x)
+
+  -- Elimination principle for the Cayley graph
+  Cayley-elim : (A : Cayley → Type ℓ')
+                (Av : (u : ⟨ G ⟩) → A (vertex u)) →
+                ((u : ⟨ G ⟩) (x : ⟨ X ⟩) → PathP (λ i → cong A (edge u x) i) (Av u) (Av (u · γ x))) →
+                (x : Cayley) → A x
+  Cayley-elim A Av Ae (vertex x) = Av x
+  Cayley-elim A Av Ae (edge g x i) = Ae g x i
+
+  module _ where
+    ff : ⟨ G ⟩ × ⟨ X ⟩ → ⟨ G ⟩
+    ff (g , x) = ?
 
   -- The Cayley graph as a kernel
   Cayley-ker : Cayley ≃ Σ BX* (λ x → embase ≡ Bγ* x)
@@ -97,29 +117,62 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
     Cayley≃Σ = isoToEquiv e
       where
       open Iso
+      ϕ-vertex : (u : ⟨ G ⟩) → Coeq Σf Σg
+      ϕ-vertex u = incl (tt , G→EM u)
+      ϕ-edge : (u : ⟨ G ⟩) (x : ⟨ X ⟩) → incl (tt , G→EM u) ≡ incl (tt , G→EM (u · γ x))
+      ϕ-edge u x =
+        incl (tt , G→EM u)                   ≡⟨ coeq (x , (G→EM u)) ⟩
+        incl (tt , equivFun (eq x) (G→EM u)) ≡⟨ cong (λ x → incl (tt , x)) (G→EM∙ u (γ x)) ⟩
+        incl (tt , G→EM (u · γ x))           ∎
+
+      ϕ : Cayley → Coeq Σf Σg
+      ϕ (vertex u) = ϕ-vertex u
+      ϕ (edge u x i) = ϕ-edge u x i
+      ψ-incl : (p : embase ≡ embase) → Cayley
+      ψ-incl p = vertex (EM→G p)
+      ψ-coeq : (x : ⟨ X ⟩) (p : embase ≡ embase) → vertex (EM→G p) ≡ vertex (EM→G (p ∙ emloop (γ x)))
+      ψ-coeq x p =
+        vertex (EM→G p)                       ≡⟨ edge (EM→G p) x ⟩
+        vertex (EM→G p · γ x)                 ≡⟨ cong (λ u → vertex (EM→G p · u)) (sym (EM→G-emloop (γ x))) ⟩
+        vertex (EM→G p · EM→G (emloop (γ x))) ≡⟨ cong vertex (sym (EM→G∙ p (emloop (γ x)))) ⟩
+        vertex (EM→G (p ∙ emloop (γ x)))      ∎
+      ψ : Coeq Σf Σg → Cayley
+      ψ (incl (tt , p)) = ψ-incl p
+      ψ (coeq (x , p) i) = ψ-coeq x p i
       e : Iso Cayley (Coeq Σf Σg)
-      fun e (vertex u) = incl (tt , G→EM u)
-      fun e (edge u x i) = lem i
+      fun e = ϕ
+      inv e = ψ
+      -- rightInv e (incl (tt , x)) = cong incl (ΣPathP (refl , retEq ΩEM≃G x))
+      -- rightInv e (coeq a i) = {!!}
+      rightInv e = Coeq-elim Σf Σg (λ x → ϕ (ψ x) ≡ x)
+        ri-incl
+        {!!} -- ri-coeq
         where
-        lem =
-          incl (tt , G→EM u)                   ≡⟨ coeq (x , (G→EM u)) ⟩
-          incl (tt , equivFun (eq x) (G→EM u)) ≡⟨ cong (λ x → incl (tt , x)) (G→EM∙ u (γ x)) ⟩
-          incl (tt , G→EM (u · γ x))           ∎
-      inv e (incl (tt , p)) = vertex (EM→G p)
-      inv e (coeq (x , p) i) = lem i
+        ri-incl : (p : Unit × (embase ≡ embase)) → ϕ-vertex (EM→G (snd p)) ≡ incl p
+        ri-incl (tt , p) = cong incl (ΣPathP (refl , retEq ΩEM≃G p))
+        ri-coeq : (x : FlatteningLemma.ΣAP f g (λ _ → embase ≡ embase) eq) → PathP (λ i → cong (λ x → ϕ (ψ x) ≡ x) (coeq x) i) (ri-incl (FlatteningLemma.Σf f g (λ _ → embase ≡ embase) eq x)) (ri-incl (FlatteningLemma.Σg f g (λ _ → embase ≡ embase) eq x))
+        ri-coeq (x , p) = lem
+          where
+          lem' : PathP (λ i → cong (λ x → ϕ (ψ x) ≡ x) (coeq (x , p)) i) (cong incl (ΣPathP (refl , retEq ΩEM≃G p))) (cong incl (ΣPathP (refl , (retEq ΩEM≃G (p ∙ emloop (γ x))))))
+          lem' = {!!}
+          lem : PathP (λ i → cong (λ x → ϕ (ψ x) ≡ x) (coeq (x , p)) i) (ri-incl (f x , p)) (ri-incl (g x , p ∙ emloop (γ x)))
+          lem = {!!}
+      leftInv e = Cayley-elim (λ x → ψ (ϕ x) ≡ x)
+        li-vertex
+        li-edge
         where
-        lem'' : vertex (EM→G p) ≡ vertex (EM→G p · γ x)
-        lem'' = edge (EM→G p) x
-        lem' : vertex (EM→G p) ≡ vertex (EM→G (p ∙ emloop (γ x)))
-        lem' = lem'' ∙ cong (λ u → vertex (EM→G p · u)) (sym (EM→G-emloop (γ x))) ∙ cong vertex (sym (EM→G∙ p (emloop (γ x))))
-        transport-eq : equivFun (eq x) p ≡ p ∙ emloop (γ x)
-        transport-eq = refl
-        lem : vertex (EM→G p) ≡ vertex (EM→G (equivFun (eq x) p))
-        lem = lem' ∙ sym (cong vertex (cong EM→G transport-eq))
-      rightInv e (incl (tt , x)) = cong incl (ΣPathP (refl , retEq ΩEM≃G x))
-      rightInv e (coeq a i) = {!!}
-      leftInv e (vertex x) = cong vertex (secEq ΩEM≃G x)
-      leftInv e (edge u x i) = {!!}
+        li-vertex : (u : ⟨ G ⟩) → vertex (EM→G (G→EM u)) ≡ vertex u
+        li-vertex u = cong vertex (secEq ΩEM≃G u)
+        li-edge : (u : ⟨ G ⟩) (x : ⟨ X ⟩) →
+                  PathP (λ i → cong (λ x → ψ (ϕ x) ≡ x) (edge u x) i) (li-vertex u) (li-vertex (u · γ x))
+        li-edge u x = toPathP {!!} -- lem up to transporting over equality
+          where
+          lem : sym (cong (ψ ∘ ϕ) (edge u x)) ∙ li-vertex u ∙ edge u x ≡ li-vertex (u · γ x)
+          lem =
+            sym (cong (ψ ∘ ϕ) (edge u x)) ∙ li-vertex u ∙ edge u x ≡⟨ {!!} ⟩
+            li-vertex (u · γ x) ∎
+
+-- cong vertex (secEq ΩEM≃G u) ≡ {!cong vertex (secEq ΩEM≃G (u · γ x))!}
 
     BX*→Coeq : BX* → Coeq f g
     BX*→Coeq base = incl tt
