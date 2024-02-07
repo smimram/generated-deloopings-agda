@@ -38,6 +38,7 @@ module FlatteningLemma {A : Type ℓ} {B : Type ℓ'} (f g : A → B) (P : B →
     -- contains a proof of the flattening lemma for pushouts (which is similar).
     flatten : Σ (Coeq f g) P' ≃ Coeq Σf Σg
 
+-- TODO: can we have X to be an arbitrary type?
 module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : generates {X = X} {G = G} γ) where
   open GroupStr (str G)
 
@@ -65,59 +66,137 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
   Cayley-elim A Av Ae (vertex x) = Av x
   Cayley-elim A Av Ae (edge g x i) = Ae g x i
 
-  f1 : ⟨ G ⟩ × ⟨ X ⟩ → ⟨ G ⟩
-  f1 (g , x) = g
-
-  g1 : ⟨ G ⟩ × ⟨ X ⟩ → ⟨ G ⟩
-  g1 (g , x) = g · γ x
-
-  -- Cayley as a coequalizer
-  Cayley≃Coeq1 : Cayley ≃ Coeq f1 g1
-  Cayley≃Coeq1 = isoToEquiv e
+  -- The Cayley graph as a kernel
+  Cayley-ker : Cayley ≃ Σ BX* (λ x → embase ≡ Bγ* x)
+  Cayley-ker =
+    Cayley                       ≃⟨ Cayley≃Coeq1 ⟩
+    Coeq f1 g1                   ≃⟨ Coeq1≃Coeq ⟩
+    Coeq Σf Σg                   ≃⟨ invEquiv flatten ⟩
+    Σ (Coeq f g) P'              ≃⟨ Σ-cong-equiv (invEquiv (BX*≃Coeq)) (λ x → pathToEquiv (equiv x)) ⟩
+    Σ BX* (λ x → embase ≡ Bγ* x) ■
     where
-    open Iso
-    e : Iso Cayley (Coeq f1 g1)
-    fun e (vertex u) = incl u
-    fun e (edge u x i) = coeq (u , x) i
-    inv e (incl u) = vertex u
-    inv e (coeq (u , x) i) = edge u x i
-    rightInv e (incl u) = refl
-    rightInv e (coeq (u , x) i) = refl
-    leftInv e (vertex u) = refl
-    leftInv e (edge u x i) = refl
+    f1 : ⟨ G ⟩ × ⟨ X ⟩ → ⟨ G ⟩
+    f1 (g , x) = g
 
-  -- -- The Cayley graph as a kernel
-  -- Cayley-ker : Cayley ≃ Σ BX* (λ x → embase ≡ Bγ* x)
-  -- Cayley-ker =
-    -- Cayley                       ≃⟨ Cayley≃Σ ⟩
-    -- Coeq Σf Σg                   ≃⟨ invEquiv flatten ⟩
-    -- Σ (Coeq f g) P'              ≃⟨ Σ-cong-equiv (invEquiv (BX*≃Coeq)) equiv ⟩
-    -- Σ BX* (λ x → embase ≡ Bγ* x) ■
-    -- where
-    -- f : ⟨ X ⟩ → Unit
-    -- f _ = tt
-    -- g = f
+    g1 : ⟨ G ⟩ × ⟨ X ⟩ → ⟨ G ⟩
+    g1 (g , x) = g · γ x
+
+    -- Cayley as a coequalizer
+    Cayley≃Coeq1 : Cayley ≃ Coeq f1 g1
+    Cayley≃Coeq1 = isoToEquiv e
+      where
+      open Iso
+      e : Iso Cayley (Coeq f1 g1)
+      fun e (vertex u) = incl u
+      fun e (edge u x i) = coeq (u , x) i
+      inv e (incl u) = vertex u
+      inv e (coeq (u , x) i) = edge u x i
+      rightInv e (incl u) = refl
+      rightInv e (coeq (u , x) i) = refl
+      leftInv e (vertex u) = refl
+      leftInv e (edge u x i) = refl
+
+    f : ⟨ X ⟩ → Unit
+    f _ = tt
+    g = f
 
     -- -- Σf : Σ X (P ∘ f) → Σ 1 P
 
-    -- eq : ⟨ X ⟩ → (embase ≡ embase) ≃ (embase ≡ embase)
-    -- eq a = compPathrEquiv (emloop (γ a))
+    eq : ⟨ X ⟩ → (embase ≡ embase) ≃ (embase ≡ embase)
+    eq a = compPathrEquiv (emloop (γ a))
 
-    -- open FlatteningLemma f g (λ _ → embase ≡ embase) eq
+    open FlatteningLemma f g (λ _ → embase ≡ embase) eq
 
-    -- ΩEM≃G : (embase ≡ embase) ≃ ⟨ G ⟩
-    -- ΩEM≃G = isoToEquiv (ΩEM₁Iso G)
+    ΩEM≃G : (embase ≡ embase) ≃ ⟨ G ⟩
+    ΩEM≃G = isoToEquiv (ΩEM₁Iso G)
 
-    -- EM→G : embase ≡ embase → ⟨ G ⟩
-    -- EM→G = equivFun ΩEM≃G
+    EM→G : embase ≡ embase → ⟨ G ⟩
+    EM→G = equivFun ΩEM≃G
 
-    -- G→EM : ⟨ G ⟩ → embase ≡ embase
-    -- G→EM = invEq ΩEM≃G
+    G→EM : ⟨ G ⟩ → embase ≡ embase
+    G→EM = invEq ΩEM≃G
 
-    -- postulate
-      -- EM→G-emloop : (u : ⟨ G ⟩) → EM→G (emloop u) ≡ u
+    postulate
+      EM→G-emloop : (u : ⟨ G ⟩) → EM→G (emloop u) ≡ u
       -- EM→G∙ : (p q : embase ≡ embase) → EM→G (p ∙ q) ≡ EM→G p · EM→G q
-      -- G→EM∙ : (u v : ⟨ G ⟩) → G→EM u ∙ G→EM v ≡ G→EM (u · v)
+      G→EM∙ : (u v : ⟨ G ⟩) → G→EM u ∙ G→EM v ≡ G→EM (u · v)
+
+    Coeq1≃Coeq : Coeq f1 g1 ≃ Coeq Σf Σg
+    Coeq1≃Coeq = Coeq≃ f1 g1 Σf Σg (h , snd (isoToEquiv h0) , snd (isoToEquiv h1))
+      where
+      open Iso
+      open CoeqHom
+
+      h0 : Iso ⟨ G ⟩ (Unit × (embase ≡ embase))
+      fun h0 u = tt , G→EM u
+      inv h0 (tt , p) = EM→G p
+      rightInv h0 (tt , p) = ΣPathP (refl , (retEq ΩEM≃G p))
+      leftInv h0 u = secEq ΩEM≃G u
+
+      h1 : Iso (⟨ G ⟩ × ⟨ X ⟩) (⟨ X ⟩ × (embase ≡ embase))
+      fun h1 (u , x) = x , G→EM u
+      inv h1 (x , p) = EM→G p , x
+      rightInv h1 (x , p) = ΣPathP (refl , (retEq ΩEM≃G p))
+      leftInv h1 (u , x) = ΣPathP (secEq ΩEM≃G u , refl)
+
+      h : CoeqHom f1 g1 Σf Σg
+      hom-incl h = fun h0
+      hom-coeq h = fun h1
+      hom-f h (u , x) = refl
+      hom-g h (u , x) = ΣPathP (refl , lem)
+        where
+        lem =
+          G→EM (g1 (u , x))        ≡⟨ refl ⟩
+          G→EM (u · γ x)           ≡⟨ sym (G→EM∙ u (γ x)) ⟩
+          G→EM u ∙ G→EM (γ x)      ≡⟨ refl ⟩
+          G→EM u ∙ emloop (γ x)    ≡⟨ refl ⟩
+          equivFun (eq x) (G→EM u) ≡⟨ refl ⟩
+          equivFun (eq x) (G→EM u) ∎
+
+    BX*≃Coeq : BX* ≃ Coeq f g
+    BX*≃Coeq = isoToEquiv e
+      where
+      open Iso
+      e : Iso BX* (Coeq f g)
+      fun e base = incl tt
+      fun e (loop x i) = coeq x i
+      inv e (incl tt) = base
+      inv e (coeq x i) = loop x i
+      rightInv e (incl tt) = refl
+      rightInv e (coeq x i) = refl
+      leftInv e base = refl
+      leftInv e (loop x i) = refl
+
+    equiv : (x : Coeq f g) → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq x ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) x))
+    equiv = Coeq.elim f g
+      (λ x → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq x ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) x)))
+      (λ tt → refl)
+      (λ x → lem x)
+      where
+      lem' : (x : ⟨ X ⟩) → transport (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x)) refl ≡ refl
+      lem' x =
+        transport (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x)) refl ≡⟨ refl ⟩
+        subst (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x) refl ≡⟨ substInPaths (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) refl ⟩
+        sym (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (coeq x)) ∙ refl ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) ≡⟨ {!!} ⟩ -- refl is neutral for ∙
+        sym (cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c) (coeq x)) ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) ≡⟨ refl ⟩
+        sym (ua (eq x)) ∙ cong (λ c → embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c)) (coeq x) ≡⟨ {!substInPaths!} ⟩
+        sym (ua (eq x)) ∙ {!!} ≡⟨ {!!} ⟩
+        refl ∎
+      lem : (x : ⟨ X ⟩) → PathP
+        (λ i → cong (λ c → FlatteningLemma.P' f g (λ tt → embase ≡ embase) eq c ≡ (embase ≡ Bγ* (equivFun (invEquiv BX*≃Coeq) c))) (coeq x) i)
+        refl
+        refl
+      lem x = toPathP (lem' x)
+
+
+
+
+
+
+
+
+
+
 
     -- Cayley≃Σ : Cayley ≃ Coeq Σf Σg
     -- Cayley≃Σ = isoToEquiv e
