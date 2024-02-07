@@ -42,7 +42,6 @@ module FlatteningLemma {A : Type ℓ} {B : Type ℓ'} (f g : A → B) (P : B →
     -- contains a proof of the flattening lemma for pushouts (which is similar).
     flatten : Σ (Coeq f g) P' ≃ Coeq Σf Σg
 
--- TODO: can we have X to be an arbitrary type?
 module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : generates {X = X} {G = G} γ) where
   open GroupStr (str G)
 
