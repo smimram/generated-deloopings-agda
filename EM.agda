@@ -165,7 +165,35 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   -- The type of relations in the presentation
   Rel = total
 
-  -- Elimination from the presented group.
+  -- -- Elimination from the presented group
+  -- ∣P∣-rec : {G : Group ℓ}
+    -- (f : ⟨ P ⟩ → ⟨ G ⟩) →
+    -- ((r : Rel) → FG.rec {Group = G} f .fst (src r) ≡ FG.rec {Group = G} f .fst (tgt r)) →
+    -- GroupHom ∣ P ∣ G
+  -- ∣P∣-rec {G} f rel = f' , f'isHom
+    -- where
+    -- open Span
+    -- f*hom : GroupHom (P *) G
+    -- f*hom = FG.rec {Group = G} f
+    -- f* : ⟨ P * ⟩ → ⟨ G ⟩
+    -- f* = fst f*hom
+    -- rel* : {u v : ⟨ P * ⟩} → (fst (freeCongruenceCongruence (P *) (str P)) u v) → f* u ≡ f* v
+    -- rel* (fcBase r) = rel r
+    -- rel* fcRefl = refl
+    -- rel* (fcTrans r r') = rel* r ∙ rel* r' 
+    -- rel* (fcSym r) = sym (rel* r)
+    -- rel* (fcProd {u} {u'} {v} {v'} r r') = pres· u v ∙ cong₂ ((str G) .GroupStr._·_) (rel* r) (rel* r') ∙ sym (pres· u' v')
+      -- where
+      -- open IsGroupHom (snd f*hom)
+    -- f' : ⟨ ∣ P ∣ ⟩ → ⟨ G ⟩
+    -- f' = SQ.rec (GroupStr.is-set (str G)) f* (λ _ _ r → rel* r)
+    -- open IsGroupHom
+    -- f'isHom : IsGroupHom (str ∣ P ∣) f' (str G)
+    -- pres· f'isHom = SQ.elimProp2 (λ _ _ → GroupStr.is-set (str G) _ _) (pres· (snd f*hom))
+    -- pres1 f'isHom = pres1 (snd f*hom)
+    -- presinv f'isHom = SQ.elimProp (λ _ → GroupStr.is-set (str G) _ _) (presinv (snd f*hom))
+
+  -- Non-dependent elimination from the presented group
   ∣P∣-rec : {G : Group ℓ}
     (f : ⟨ P ⟩ → ⟨ G ⟩) →
     ((r : Rel) → FG.rec {Group = G} f .fst (src r) ≡ FG.rec {Group = G} f .fst (tgt r)) →
@@ -369,6 +397,8 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
     fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x) refl λ x → toPathP (lem x)
       where
+      lem' : (x : ⟨ ∣ P ∣ ⟩) → cong f (fst loopHom x) ≡ emloop x
+      lem' x = {!∣P∣-elim!}
       lem : (x : ⟨ ∣ P ∣ ⟩) → subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡ refl
       lem x =
         subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡⟨ subst2≡Refl (cong (f ∘ g) (emloop x)) (emloop x) ⟩
@@ -393,41 +423,26 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     gf : (x : Delooping) → g (f x) ≡ x
     gf = Delooping-elim (λ x → g (f x) ≡ x) refl gf-gen gf-rel (λ x → isSet→isGroupoid (gpd (g (f x)) x))
       where
+      gf-gen' : (a : ⟨ P ⟩) → cong g (emloop [ η a ]) ≡ cong inj (gen a)
+      gf-gen' a =
+        cong g (emloop [ η a ]) ≡⟨ refl ⟩
+        fst loopHom [ η a ]     ≡⟨ refl ⟩
+        cong inj (gen a)        ∎
       gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (f1 (gen a i)) ≡ inj (gen a i)) refl refl
-      gf-gen a = {!!}
+      gf-gen a i j = gf-gen' a j i
+      gf-rel' : (r : Rel) → Cube
+        (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
+        (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
+        refl
+        refl
+        (cong (cong g) (f1rel r))
+        (rel r)
+      gf-rel' r = isGroupoid→isGroupoid' gpd _ _ _ _ _ _
       gf-rel : (r : Rel) →
         PathP (λ i → PathP (λ j → g (f1rel r i j) ≡ rel r i j) refl refl)
           (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
           (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
-      gf-rel r = {!!}
-
-    -- gf : (x : Delooping) → g (f x) ≡ x
-    -- gf = Delooping-elim (λ x → g (f x) ≡ x)
-      -- refl
-      -- gf-gen
-      -- gf-rel
-      -- (λ x → isSet→isGroupoid (gpd (g (f x)) x))
-      -- where
-      -- gf-gen' : (a : ⟨ P ⟩) → cong g (emloop [ η a ]) ≡ cong inj (gen a)
-      -- gf-gen' a =
-        -- cong g (emloop [ η a ])       ≡⟨ refl ⟩
-        -- cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) (secGen a) ⟩
-        -- cong inj (gen a)              ∎
-      -- gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (f1 (gen a i)) ≡ inj (gen a i)) refl refl
-      -- gf-gen a i j = gf-gen' a j i
-      -- gf-rel' : (r : Rel) → Cube
-        -- (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
-        -- (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
-        -- refl
-        -- refl
-        -- (cong (cong g) (f1rel r))
-        -- (rel r)
-      -- gf-rel' r = isGroupoid→isGroupoid' gpd _ _ _ _ _ _
-      -- gf-rel : (r : Rel) →
-        -- PathP (λ i → PathP (λ j → g (f1rel r i j) ≡ rel r i j) refl refl)
-          -- (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
-          -- (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
-      -- gf-rel r = gf-rel' r
+      gf-rel r = gf-rel' r
 
     open Iso
 
