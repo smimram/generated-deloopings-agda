@@ -128,7 +128,7 @@ module _ (G : Group ℓ) where
     IsGroup.·InvR (GroupStr.isGroup grp) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·InvR x)
     IsGroup.·InvL (GroupStr.isGroup grp) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·InvL x)
 
-open import Cubical.HITs.FreeGroup as FG hiding (assoc)
+open import Cubical.HITs.FreeGroup as FG using (FreeGroup ; freeGroupGroup)
 
 -- A group presentation
 Presentation : {ℓ : Level} → Type _
@@ -147,6 +147,14 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   -- The type of relations in the presentation
   Rel = total
 
+  -- The presented group
+  G : Group ℓ
+  G = ∣ P ∣
+
+  -- Unit of G
+  1G : ⟨ G ⟩
+  1G = GroupStr.1g (str G)
+
   -- 1-skeleton of the delooping of a presentation
   data 1Delooping : Type ℓ where
     ⋆ : 1Delooping
@@ -154,6 +162,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
 
   -- Elimination principle for the 1-delooping
   1Delooping-elim :
+    {ℓ : Level}
     (A : 1Delooping → Type ℓ)
     (Apt : A ⋆) →
     ((a : ⟨ P ⟩) → PathP (λ i → cong A (gen a) i) Apt Apt) →
@@ -161,51 +170,139 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   1Delooping-elim A Apt Agen ⋆ = Apt
   1Delooping-elim A Apt Agen (gen a i) = Agen a i
 
+  1Delooping-rec :
+    {ℓ : Level}
+    {A : Type ℓ}
+    (Apt : A) →
+    (⟨ P ⟩ → Apt ≡ Apt) →
+    1Delooping → A
+  1Delooping-rec {_} {A} = 1Delooping-elim (λ _ → A)
+
   postulate
     -- The 1-delooping is a groupoid when we have a set of generators. This is
     -- non-trivial and proved in Wärn's _Path spaces of pushouts_.
     isGroupoid1Delooping : isGroupoid 1Delooping
 
-  -- Path associated to a formal composite
-  -- Morally, we should be able to define it as
-  -- -- path : (u : ⟨ P * ⟩) → ⋆ ≡ ⋆
-  -- -- path = fst (FG.rec gen)
-  -- but we would need the group structure on the loop space of the 1-delooping
-  path : (u : ⟨ P * ⟩) → ⋆ ≡ ⋆
-  path (η a) = gen a
-  path (u · v) = path u ∙ path v
-  path ε = refl
-  path (inv u) = sym (path u)
-  path (FG.assoc u v w i) = assoc (path u) (path v) (path w) i
-  path (idr u i) = rUnit (path u) i
-  path (idl u i) = lUnit (path u) i
-  path (invr u i) = rCancel (path u) i
-  path (invl u i) = lCancel (path u) i
-  path (trunc u v p q i j) = isGroupoid1Delooping ⋆ ⋆ (path u) (path v) (cong path p) (cong path q) i j
+  module _ where
+    open FG hiding (assoc)
 
-  -- The pre-delooping of a presentation (pre means that we lack groupoid truncation)
-  data PreDelooping : Type ℓ where
-    inj : 1Delooping → PreDelooping
+    -- Path associated to a formal composite
+    -- Morally, we should be able to define it as
+    -- -- path : (u : ⟨ P * ⟩) → ⋆ ≡ ⋆
+    -- -- path = fst (FG.rec gen)
+    -- but we would need the group structure on the loop space of the 1-delooping
+    path : (u : ⟨ P * ⟩) → ⋆ ≡ ⋆
+    path (η a) = gen a
+    path (u · v) = path u ∙ path v
+    path ε = refl
+    path (inv u) = sym (path u)
+    path (FG.assoc u v w i) = assoc (path u) (path v) (path w) i
+    path (idr u i) = rUnit (path u) i
+    path (idl u i) = lUnit (path u) i
+    path (invr u i) = rCancel (path u) i
+    path (invl u i) = lCancel (path u) i
+    path (trunc u v p q i j) = isGroupoid1Delooping ⋆ ⋆ (path u) (path v) (cong path p) (cong path q) i j
+
+  -- The delooping of a presentation
+  data Delooping : Type ℓ where
+    inj : 1Delooping → Delooping
     rel : (r : Rel) → cong inj (path (src r)) ≡ cong inj (path (tgt r))
-    -- gpd : isGroupoid Delooping
+    gpd : isGroupoid Delooping
 
   -- Dependent version of path 
   pathD :
-    (A : PreDelooping → Type ℓ)
+    {ℓ : Level}
+    (A : Delooping → Type ℓ)
     (Apt : A (inj ⋆))
     (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt) →
     (u : ⟨ P * ⟩) → PathP (λ i → A (inj (path u i))) Apt Apt
   pathD A Apt Agen u = cong (1Delooping-elim (λ x → A (inj x)) Apt Agen) (path u)
 
   -- Elimination principle for the delooping
-  PreDelooping-elim :
-    (A : PreDelooping → Type ℓ)
+  Delooping-elim :
+    {ℓ : Level}
+    (A : Delooping → Type ℓ)
     (Apt : A (inj ⋆))
     (Agen : (a : ⟨ P ⟩) → PathP (λ i → A (inj (gen a i))) Apt Apt)
     (Arel : (r : Rel) → PathP (λ i → PathP (λ j → A (rel r i j)) Apt Apt) (pathD A Apt Agen (src r)) (pathD A Apt Agen (tgt r))) →
-    (x : PreDelooping) → A x
-  PreDelooping-elim A Apt Agen Arel (inj x) = 1Delooping-elim (λ x → A (inj x)) Apt Agen x
-  PreDelooping-elim A Apt Agen Arel (rel r i j) = Arel r i j
+    ((x : Delooping) → isGroupoid (A x)) →
+    (x : Delooping) → A x
+  Delooping-elim A Apt Agen Arel Agpd (inj x) = 1Delooping-elim (λ x → A (inj x)) Apt Agen x
+  Delooping-elim A Apt Agen Arel Agpd (rel r i j) = Arel r i j
+  Delooping-elim A Apt Agen Arel Agpd (gpd x y p q P Q i j k) = isOfHLevel→isOfHLevelDep 3 Agpd (f x) (f y) (cong f p) (cong f q) (cong (cong f) P) (cong (cong f) Q) (gpd x y p q P Q) i j k
+    where
+    f = Delooping-elim A Apt Agen Arel Agpd
+
+  Delooping-rec :
+    {ℓ : Level}
+    {A : Type ℓ}
+    (Apt : A)
+    (Agen : ⟨ P ⟩ → Apt ≡ Apt)
+    (Arel : (r : Rel) → path (src r) ≡ path (tgt r)) →
+    isGroupoid A →
+    Delooping → A
+  Delooping-rec {ℓ} {A} Apt Agen Arel Agpd x = Delooping-elim (λ _ → A) Apt Agen Arel' {!!} x
+    where
+    Arel' : (r : Rel) → (pathD (λ _ → A) Apt Agen (src r)) ≡ (pathD (λ _ → A) Apt Agen (tgt r))
+    Arel' r i j = {!!} -- pathD agrees with path in the non-dependent case
+  -- PreDelooping-rec A Apt Agen Arel (inj x) = 1Delooping-rec A Apt Agen x
+  -- PreDelooping-rec A Apt Agen Arel (rel r i j) = {!!}  
+
+  -- self-action on the left
+  lact : ⟨ G ⟩ → ⟨ G ⟩ ≡ ⟨ G ⟩
+  lact x = ua (isoToEquiv e)
+    where
+    open GroupStr (str G)
+    e : Iso ⟨ G ⟩ ⟨ G ⟩
+    Iso.fun e y = x · y
+    Iso.inv e y = inv x · y
+    Iso.rightInv e y = {!!}
+    Iso.leftInv e y = {!!}
+
+  Code : Delooping → Type ℓ
+  Code x = ⟨ CodeSet x ⟩
+    where
+    CodeSet : Delooping → hSet ℓ
+    CodeSet x = Delooping-rec (⟨ G ⟩ , {!!}) (λ a → ΣPathP ((lact [ FG.η a ]) , {!!})) {!!} isGroupoidHSet x -- Delooping-rec (⟨ G ⟩ (λ a → lact [ FG.η a ]) {!!} {!!} x
+
+  encode : {x : Delooping} → inj ⋆ ≡ x → Code x
+  encode p = subst Code p 1G
+
+  theorem :
+    -- We have a section
+    (sec : fst ∣ P ∣ → ⟨ P * ⟩) →
+    -- ((x : fst ∣ P ∣) → [ sec x ] ≡ x) →
+    -- -- which preserves generators
+    -- ((a : ⟨ P ⟩) → path (sec [ η a ]) ≡ gen a) →
+    -- -- and products
+    -- ((u v : fst ∣ P ∣) → path (sec (GroupStr._·_ (snd ∣ P ∣) u v)) ≡ path (sec u · sec v)) →
+    (⋆ ≡ ⋆) ≃ ⟨ G ⟩
+  theorem sec = {!!}
+
+    where
+    loop : ⟨ G ⟩ → inj ⋆ ≡ inj ⋆
+    loop x = cong inj (path (sec x))
+
+    encode-loop : (x : ⟨ G ⟩) → encode (loop x) ≡ x
+    encode-loop x =
+      encode (loop x) ≡⟨ refl ⟩
+      subst Code (cong inj (path (sec x))) 1G ≡⟨ {!!} ⟩
+      (1G · x) ≡⟨ ·IdL x ⟩
+      x ∎
+      where
+      open GroupStr (str G)
+
+    decode : {x : Delooping} → Code x → inj ⋆ ≡ x
+    decode {x} = Delooping-elim (λ x → Code x → inj ⋆ ≡ x) loop ploop {!!} (λ _ → isGroupoidΠ (λ _ → {!!})) x
+      where
+      ploop : (a : ⟨ P ⟩) →  PathP (λ i → Code (inj (gen a i)) → inj ⋆ ≡ inj (gen a i)) loop loop
+      ploop a = toPathP (funExt λ x → {!!})
+        where
+        lem : (x : ⟨ G ⟩) → {!!}
+        lem x =
+          loop (subst Code (loop [ FG.η a ]) x) ≡⟨ {!!} ⟩
+          loop {!!} ∙ loop {!!} ∎
+
 
   -- -- Our main theorem: the delooping associated to the presentation coincides
   -- -- with the delooping as generic Eilenberg-MacLane spaces.
