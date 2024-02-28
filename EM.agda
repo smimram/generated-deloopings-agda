@@ -166,11 +166,11 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   Rel = total
 
   -- Elimination from the presented group.
-  ∣P∣-rec : (G : Group ℓ)
+  ∣P∣-rec : {G : Group ℓ}
     (f : ⟨ P ⟩ → ⟨ G ⟩) →
     ((r : Rel) → FG.rec {Group = G} f .fst (src r) ≡ FG.rec {Group = G} f .fst (tgt r)) →
     GroupHom ∣ P ∣ G
-  ∣P∣-rec G f rel = f' , f'isHom
+  ∣P∣-rec {G} f rel = f' , f'isHom
     where
     open Span
     f*hom : GroupHom (P *) G
@@ -322,8 +322,16 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     Ωgroup : {ℓ : Level} (A : Pointed ℓ) → isGroupoid ⟨ A ⟩ → Group ℓ
     Ωgroup A Gpd = makeGroup {G = pt A ≡ pt A} refl (λ p q → p ∙ q) sym (Gpd _ _) GL.assoc (λ p → sym (GL.rUnit p)) (λ p → sym (GL.lUnit p)) GL.rCancel GL.lCancel
 
-    loopHom : GroupHom (∣ P ∣) (Ωgroup (Delooping , (inj ⋆)) gpd)
-    loopHom = {!!}
+    -- Loop space of the reduced delooping
+    ΩBP : Group ℓ
+    ΩBP = Ωgroup (Delooping , inj ⋆) gpd
+
+    -- Loop associated to any element of the reduced delooping
+    loopHom : GroupHom (∣ P ∣) ΩBP
+    loopHom = ∣P∣-rec (λ a → cong inj (gen a)) (λ r → lem (src r) ∙ rel r ∙ sym (lem (tgt r)))
+      where
+      lem : (u : ⟨ P * ⟩) → FG.rec {Group = ΩBP} (λ a → cong inj (gen a)) .fst u ≡ cong inj (path u)
+      lem u = {!!}
 
     -- We can send EM to the delooping
     g : EM₁ ∣ P ∣ → Delooping
@@ -331,11 +339,11 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       ∣ P ∣
       (λ _ → gpd)
       (inj ⋆)
-      {!!} -- loop
-      {!!}
+      (λ u → fst loopHom u)
+      (λ u v → toPathP (lem u v))
       where
-      -- loop : ⟨ ∣ P ∣ ⟩ → inj ⋆ ≡ inj ⋆
-      -- loop x = {!pGroup-elim!}
+      lem : (u v : ⟨ ∣ P ∣ ⟩) → transport (λ i → fst loopHom u i ≡ fst loopHom ((snd ∣ P ∣ GroupStr.· u) v) i) refl ≡ fst loopHom v
+      lem u v = {!!}
 
     -- -- We can send EM to the delooping
     -- g : EM₁ ∣ P ∣ → Delooping
@@ -358,6 +366,18 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         -- refl ∙ cong inj (path (sec v))                                                                   ≡⟨ sym (lUnit _) ⟩
         -- cong inj (path (sec v))                                                                          ∎
 
+    fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
+    fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x) refl λ x → toPathP (lem x)
+      where
+      lem : (x : ⟨ ∣ P ∣ ⟩) → subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡ refl
+      lem x =
+        subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡⟨ subst2≡Refl (cong (f ∘ g) (emloop x)) (emloop x) ⟩
+        sym (cong (f ∘ g) (emloop x)) ∙ emloop x ≡⟨ refl ⟩
+        sym (cong f (cong g (emloop x))) ∙ emloop x ≡⟨ refl ⟩
+        sym (cong f (fst loopHom x)) ∙ emloop x ≡⟨ {!!} ⟩ -- we need a lemma here
+        sym (emloop x) ∙ emloop x ≡⟨ lCancel _ ⟩
+        refl ∎
+
     -- fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
     -- fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x)
       -- refl
@@ -369,6 +389,17 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         -- sym (cong f1 (path (sec x))) ∙ emloop x             ≡⟨ cong₂ _∙_ (cong sym (pathToEM (sec x) ∙ cong emloop (isSec x))) refl ⟩
         -- sym (emloop x) ∙ emloop x                           ≡⟨ lCancel _ ⟩
         -- refl                                                ∎
+
+    gf : (x : Delooping) → g (f x) ≡ x
+    gf = Delooping-elim (λ x → g (f x) ≡ x) refl gf-gen gf-rel (λ x → isSet→isGroupoid (gpd (g (f x)) x))
+      where
+      gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (f1 (gen a i)) ≡ inj (gen a i)) refl refl
+      gf-gen a = {!!}
+      gf-rel : (r : Rel) →
+        PathP (λ i → PathP (λ j → g (f1rel r i j) ≡ rel r i j) refl refl)
+          (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
+          (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
+      gf-rel r = {!!}
 
     -- gf : (x : Delooping) → g (f x) ≡ x
     -- gf = Delooping-elim (λ x → g (f x) ≡ x)
@@ -402,9 +433,9 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
 
     e : Iso Delooping (EM₁ ∣ P ∣)
     fun e = f
-    Iso.inv e = {!!} -- g
-    rightInv e = {!!} -- fg
-    leftInv e = {!!} -- gf
+    Iso.inv e = g
+    rightInv e = fg
+    leftInv e = gf
 
     -- Note: we never use any hypothesis on the hLevel of the presentation (the
     -- type of generators and relations do not need to be sets).
