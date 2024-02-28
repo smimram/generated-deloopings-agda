@@ -25,9 +25,8 @@ open import GSetProperties
 open import Generators
 open import PrincipalTorsor
 
-private
-  variable
-    ℓ ℓ' : Level
+private variable
+  ℓ ℓ' : Level
 
 -- A natural forgetful functor for subsets of groups:
 U : {X : hSet ℓ} {G : Group ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) → GSet G → XSet X
