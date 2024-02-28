@@ -12,6 +12,7 @@ open import Cubical.Data.Sigma
 open import Cubical.Algebra.Semigroup
 open import Cubical.Algebra.Monoid
 open import Cubical.Algebra.Group
+open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Relation.Binary hiding (Rel)
 open import Cubical.HITs.SetQuotients as SQ
 
@@ -164,6 +165,34 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   -- The type of relations in the presentation
   Rel = total
 
+  -- Elimination from the presented group.
+  ∣P∣-rec : (G : Group ℓ)
+    (f : ⟨ P ⟩ → ⟨ G ⟩) →
+    ((r : Rel) → FG.rec {Group = G} f .fst (src r) ≡ FG.rec {Group = G} f .fst (tgt r)) →
+    GroupHom ∣ P ∣ G
+  ∣P∣-rec G f rel = f' , f'isHom
+    where
+    open Span
+    f*hom : GroupHom (P *) G
+    f*hom = FG.rec {Group = G} f
+    f* : ⟨ P * ⟩ → ⟨ G ⟩
+    f* = fst f*hom
+    rel* : {u v : ⟨ P * ⟩} → (fst (freeCongruenceCongruence (P *) (str P)) u v) → f* u ≡ f* v
+    rel* (fcBase r) = rel r
+    rel* fcRefl = refl
+    rel* (fcTrans r r') = rel* r ∙ rel* r' 
+    rel* (fcSym r) = sym (rel* r)
+    rel* (fcProd {u} {u'} {v} {v'} r r') = pres· u v ∙ cong₂ ((str G) .GroupStr._·_) (rel* r) (rel* r') ∙ sym (pres· u' v')
+      where
+      open IsGroupHom (snd f*hom)
+    f' : ⟨ ∣ P ∣ ⟩ → ⟨ G ⟩
+    f' = SQ.rec (GroupStr.is-set (str G)) f* (λ _ _ r → rel* r)
+    open IsGroupHom
+    f'isHom : IsGroupHom (str ∣ P ∣) f' (str G)
+    pres· f'isHom = SQ.elimProp2 (λ _ _ → GroupStr.is-set (str G) _ _) (pres· (snd f*hom))
+    pres1 f'isHom = pres1 (snd f*hom)
+    presinv f'isHom = SQ.elimProp (λ _ → GroupStr.is-set (str G) _ _) (presinv (snd f*hom))
+
   -- 1-skeleton of the delooping of a presentation
   data 1Delooping : Type ℓ where
     ⋆ : 1Delooping
@@ -289,73 +318,93 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     f (rel r i j) = f1rel r i j
     f (gpd x y p q P Q i j k) = emsquash (f x) (f y) (cong f p) (cong f q) (λ i j → f (P i j)) (λ i j → f (Q i j)) i j k
 
+    -- The loop space of a groupoid is a group
+    Ωgroup : {ℓ : Level} (A : Pointed ℓ) → isGroupoid ⟨ A ⟩ → Group ℓ
+    Ωgroup A Gpd = makeGroup {G = pt A ≡ pt A} refl (λ p q → p ∙ q) sym (Gpd _ _) GL.assoc (λ p → sym (GL.rUnit p)) (λ p → sym (GL.lUnit p)) GL.rCancel GL.lCancel
+
+    loopHom : GroupHom (∣ P ∣) (Ωgroup (Delooping , (inj ⋆)) gpd)
+    loopHom = {!!}
+
     -- We can send EM to the delooping
     g : EM₁ ∣ P ∣ → Delooping
     g = EM.elimGroupoid
       ∣ P ∣
       (λ _ → gpd)
       (inj ⋆)
-      (λ u → cong inj (path (sec u))) -- this is where we need the section
-      (λ u v → toPathP (lem u v))
+      {!!} -- loop
+      {!!}
       where
-      -- lem : (u v : fst ∣ P ∣) → transport (λ i → inj (path (sec u) i) ≡ inj (path (sec ((snd ∣ P ∣ GroupStr.· u) v)) i)) (λ _ → inj ⋆) ≡ (λ i → inj (path (sec v) i))
-      lem : (u v : fst ∣ P ∣) → subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v )))) refl ≡ cong inj (path (sec v))
-      lem u v =
-        subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))) refl ≡⟨ subst2≡Refl (cong inj (path (sec u))) _ ⟩
-        sym (cong inj (path (sec u))) ∙ cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))             ≡⟨ cong₂ _∙_ refl (cong (cong inj) (secProd u v)) ⟩
-        sym (cong inj (path (sec u))) ∙ cong inj (path (sec u · sec v))                                  ≡⟨ refl ⟩
-        sym (cong inj (path (sec u))) ∙ cong inj (path (sec u) ∙ path (sec v))                           ≡⟨ cong₂ _∙_ refl (cong-∙ inj (path (sec u)) (path (sec v))) ⟩
-        sym (cong inj (path (sec u))) ∙ cong inj (path (sec u)) ∙ cong inj (path (sec v))                ≡⟨ assoc _ _ _ ⟩
-        (sym (cong inj (path (sec u))) ∙ cong inj (path (sec u))) ∙ cong inj (path (sec v))              ≡⟨ cong₂ _∙_ (lCancel _) refl ⟩
-        refl ∙ cong inj (path (sec v))                                                                   ≡⟨ sym (lUnit _) ⟩
-        cong inj (path (sec v))                                                                          ∎
+      -- loop : ⟨ ∣ P ∣ ⟩ → inj ⋆ ≡ inj ⋆
+      -- loop x = {!pGroup-elim!}
 
-    fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
-    fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x)
-      refl
-      (λ x → toPathP (lem x))
-      where
-      lem : (x : fst ∣ P ∣) → subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡ refl
-      lem x =
-        subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡⟨ subst2≡Refl (cong f1 (path (sec x))) (emloop x) ⟩
-        sym (cong f1 (path (sec x))) ∙ emloop x             ≡⟨ cong₂ _∙_ (cong sym (pathToEM (sec x) ∙ cong emloop (isSec x))) refl ⟩
-        sym (emloop x) ∙ emloop x                           ≡⟨ lCancel _ ⟩
-        refl                                                ∎
+    -- -- We can send EM to the delooping
+    -- g : EM₁ ∣ P ∣ → Delooping
+    -- g = EM.elimGroupoid
+      -- ∣ P ∣
+      -- (λ _ → gpd)
+      -- (inj ⋆)
+      -- (λ u → cong inj (path (sec u))) -- this is where we need the section
+      -- (λ u v → toPathP (lem u v))
+      -- where
+      -- -- lem : (u v : fst ∣ P ∣) → transport (λ i → inj (path (sec u) i) ≡ inj (path (sec ((snd ∣ P ∣ GroupStr.· u) v)) i)) (λ _ → inj ⋆) ≡ (λ i → inj (path (sec v) i))
+      -- lem : (u v : fst ∣ P ∣) → subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v )))) refl ≡ cong inj (path (sec v))
+      -- lem u v =
+        -- subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))) refl ≡⟨ subst2≡Refl (cong inj (path (sec u))) _ ⟩
+        -- sym (cong inj (path (sec u))) ∙ cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))             ≡⟨ cong₂ _∙_ refl (cong (cong inj) (secProd u v)) ⟩
+        -- sym (cong inj (path (sec u))) ∙ cong inj (path (sec u · sec v))                                  ≡⟨ refl ⟩
+        -- sym (cong inj (path (sec u))) ∙ cong inj (path (sec u) ∙ path (sec v))                           ≡⟨ cong₂ _∙_ refl (cong-∙ inj (path (sec u)) (path (sec v))) ⟩
+        -- sym (cong inj (path (sec u))) ∙ cong inj (path (sec u)) ∙ cong inj (path (sec v))                ≡⟨ assoc _ _ _ ⟩
+        -- (sym (cong inj (path (sec u))) ∙ cong inj (path (sec u))) ∙ cong inj (path (sec v))              ≡⟨ cong₂ _∙_ (lCancel _) refl ⟩
+        -- refl ∙ cong inj (path (sec v))                                                                   ≡⟨ sym (lUnit _) ⟩
+        -- cong inj (path (sec v))                                                                          ∎
 
-    gf : (x : Delooping) → g (f x) ≡ x
-    gf = Delooping-elim (λ x → g (f x) ≡ x)
-      refl
-      gf-gen
-      gf-rel
-      (λ x → isSet→isGroupoid (gpd (g (f x)) x))
-      where
-      gf-gen' : (a : ⟨ P ⟩) → cong g (emloop [ η a ]) ≡ cong inj (gen a)
-      gf-gen' a =
-        cong g (emloop [ η a ])       ≡⟨ refl ⟩
-        cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) (secGen a) ⟩
-        cong inj (gen a)              ∎
-      gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (f1 (gen a i)) ≡ inj (gen a i)) refl refl
-      gf-gen a i j = gf-gen' a j i
-      gf-rel' : (r : Rel) → Cube
-        (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
-        (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
-        refl
-        refl
-        (cong (cong g) (f1rel r))
-        (rel r)
-      gf-rel' r = isGroupoid→isGroupoid' gpd _ _ _ _ _ _
-      gf-rel : (r : Rel) →
-        PathP (λ i → PathP (λ j → g (f1rel r i j) ≡ rel r i j) refl refl)
-          (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
-          (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
-      gf-rel r = gf-rel' r
+    -- fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
+    -- fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x)
+      -- refl
+      -- (λ x → toPathP (lem x))
+      -- where
+      -- lem : (x : fst ∣ P ∣) → subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡ refl
+      -- lem x =
+        -- subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡⟨ subst2≡Refl (cong f1 (path (sec x))) (emloop x) ⟩
+        -- sym (cong f1 (path (sec x))) ∙ emloop x             ≡⟨ cong₂ _∙_ (cong sym (pathToEM (sec x) ∙ cong emloop (isSec x))) refl ⟩
+        -- sym (emloop x) ∙ emloop x                           ≡⟨ lCancel _ ⟩
+        -- refl                                                ∎
+
+    -- gf : (x : Delooping) → g (f x) ≡ x
+    -- gf = Delooping-elim (λ x → g (f x) ≡ x)
+      -- refl
+      -- gf-gen
+      -- gf-rel
+      -- (λ x → isSet→isGroupoid (gpd (g (f x)) x))
+      -- where
+      -- gf-gen' : (a : ⟨ P ⟩) → cong g (emloop [ η a ]) ≡ cong inj (gen a)
+      -- gf-gen' a =
+        -- cong g (emloop [ η a ])       ≡⟨ refl ⟩
+        -- cong inj (path (sec [ η a ])) ≡⟨ cong (cong inj) (secGen a) ⟩
+        -- cong inj (gen a)              ∎
+      -- gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (f1 (gen a i)) ≡ inj (gen a i)) refl refl
+      -- gf-gen a i j = gf-gen' a j i
+      -- gf-rel' : (r : Rel) → Cube
+        -- (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
+        -- (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
+        -- refl
+        -- refl
+        -- (cong (cong g) (f1rel r))
+        -- (rel r)
+      -- gf-rel' r = isGroupoid→isGroupoid' gpd _ _ _ _ _ _
+      -- gf-rel : (r : Rel) →
+        -- PathP (λ i → PathP (λ j → g (f1rel r i j) ≡ rel r i j) refl refl)
+          -- (pathD (λ x → g (f x) ≡ x) refl gf-gen (src r))
+          -- (pathD (λ x → g (f x) ≡ x) refl gf-gen (tgt r))
+      -- gf-rel r = gf-rel' r
+
     open Iso
 
     e : Iso Delooping (EM₁ ∣ P ∣)
     fun e = f
-    Iso.inv e = g
-    rightInv e = fg
-    leftInv e = gf
+    Iso.inv e = {!!} -- g
+    rightInv e = {!!} -- fg
+    leftInv e = {!!} -- gf
 
     -- Note: we never use any hypothesis on the hLevel of the presentation (the
     -- type of generators and relations do not need to be sets).
