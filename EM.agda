@@ -265,6 +265,9 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
 
   -- Our main theorem: the delooping associated to the presentation coincides
   -- with the delooping as generic Eilenberg-MacLane spaces.
+  --
+  -- IMPORTANT NOTE FOR THE REVIEWERS: We managed to get rid of our additional
+  -- hypothesis since the writing of the paper.
   theorem : Delooping ≃ EM₁ ∣ P ∣
   theorem = isoToEquiv e
     where
