@@ -437,12 +437,13 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         word : (u : ⟨ P * ⟩) → cong f (loop [ u ]) ≡ emloop [ u ]
         word (η x) = refl
         word (u · v) =
-          cong f (loop [ u · v ]) ≡⟨ refl ⟩
-          cong f (loop ([ u ] ·P [ v ])) ≡⟨ cong (cong f) (IsGroupHom.pres· (snd loopHom) {![ u ]!} {!!}) ⟩
+          cong f (loop [ u · v ])                   ≡⟨ refl ⟩
+          cong f (loop ([ u ] ·P [ v ]))            ≡⟨ cong (cong f) (IsGroupHom.pres· (snd loopHom) [ u ] [ v ]) ⟩
+          cong f (loop [ u ] ∙ loop [ v ])          ≡⟨ cong-∙ f (loop [ u ]) (loop [ v ]) ⟩
           cong f (loop [ u ]) ∙ cong f (loop [ v ]) ≡⟨ cong₂ _∙_ (word u) (word v) ⟩
-          emloop [ u ] ∙ emloop [ v ] ≡⟨ sym (emloop-comp _ [ u ] [ v ]) ⟩
-          emloop ([ u ] ·P [ v ]) ≡⟨ refl ⟩
-          emloop [ u · v ] ∎
+          emloop [ u ] ∙ emloop [ v ]               ≡⟨ sym (emloop-comp _ [ u ] [ v ]) ⟩
+          emloop ([ u ] ·P [ v ])                   ≡⟨ refl ⟩
+          emloop [ u · v ]                          ∎
         word ε = sym (emloop-1g ∣ P ∣)
         word (inv u) =
           cong f (loop [ inv u ])                 ≡⟨ refl ⟩
@@ -452,27 +453,35 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
           sym (emloop [ u ])                      ≡⟨ sym (emloop-sym _ [ u ]) ⟩
           emloop (invP [ u ]) ≡⟨ refl ⟩
           emloop [ inv u ]                        ∎
-        word (FG.assoc u v w i) = {!!}
-        word (idr u i) = {!lem'' i!}
+        word (FG.assoc u v w i) = lem'' i
           where
-          lem'' : PathP (λ i → cong f (loop [ idr u i ]) ≡ emloop [ idr u i ]) (word u) {!!}
+          lem'' : PathP (λ i → cong f (loop [ FG.assoc u v w i ]) ≡ emloop [ FG.assoc u v w i ]) (word (u · (v · w))) (word ((u · v) · w))
           lem'' = toPathP (emsquash _ _ _ _ _ _)
-        word (idl u i) = {!!}
-        word (invr u i) = {!!}
-        word (invl u i) = {!!}
+        word (idr u i) = lem'' i
+          where
+          lem'' : PathP (λ i → cong f (loop [ idr u i ]) ≡ emloop [ idr u i ]) (word u) (word (u · ε))
+          lem'' = toPathP (emsquash _ _ _ _ _ _)
+        word (idl u i) = lem'' i
+          where
+          lem'' : PathP (λ i → cong f (loop [ idl u i ]) ≡ emloop [ idl u i ]) (word u) (word (ε · u))
+          lem'' = toPathP (emsquash _ _ _ _ _ _)
+        word (invr u i) = lem'' i
+          where
+          lem'' : PathP (λ i → cong f (loop [ invr u i ]) ≡ emloop [ invr u i ]) (word (u · inv u)) (word ε)
+          lem'' = toPathP (emsquash _ _ _ _ _ _)
+        word (invl u i) = lem'' i
+          where
+          lem'' : PathP (λ i → cong f (loop [ invl u i ]) ≡ emloop [ invl u i ]) (word (inv u · u)) (word ε)
+          lem'' = toPathP (emsquash _ _ _ _ _ _)
         word (trunc u v p q i j) = {!!}
-        -- word u =
-          -- cong f (loop [ u ]) ≡⟨ {!!} ⟩
-          -- cong f (cong inj {!!}) ≡⟨ {!!} ⟩
-          -- emloop [ u ] ∎
       lem : (x : ⟨ ∣ P ∣ ⟩) → subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡ refl
       lem x =
         subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡⟨ subst2≡Refl (cong (f ∘ g) (emloop x)) (emloop x) ⟩
-        sym (cong (f ∘ g) (emloop x)) ∙ emloop x ≡⟨ refl ⟩
-        sym (cong f (cong g (emloop x))) ∙ emloop x ≡⟨ refl ⟩
-        sym (cong f (loop x)) ∙ emloop x ≡⟨ {!!} ⟩ -- we need a lemma here
-        sym (emloop x) ∙ emloop x ≡⟨ lCancel _ ⟩
-        refl ∎
+        sym (cong (f ∘ g) (emloop x)) ∙ emloop x             ≡⟨ refl ⟩
+        sym (cong f (cong g (emloop x))) ∙ emloop x          ≡⟨ refl ⟩
+        sym (cong f (loop x)) ∙ emloop x                     ≡⟨ cong₂ _∙_ (cong sym (lem' x)) refl ⟩
+        sym (emloop x) ∙ emloop x                            ≡⟨ lCancel _ ⟩
+        refl                                                 ∎
 
     -- fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
     -- fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x)
