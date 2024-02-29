@@ -162,40 +162,13 @@ P * = freeGroupGroup ⟨ P ⟩
 module _ {ℓ : Level} (P : Presentation {ℓ}) where
   open Span (str P)
 
+  -- Operations on ∣ P ∣
   1P   = GroupStr.1g (str ∣ P ∣)
   _·P_ = GroupStr._·_ (str ∣ P ∣)
   invP = GroupStr.inv (str ∣ P ∣)
 
   -- The type of relations in the presentation
   Rel = total
-
-  -- -- Elimination from the presented group
-  -- ∣P∣-elim : {G : Group ℓ}
-    -- (f : ⟨ P ⟩ → ⟨ G ⟩) →
-    -- ((r : Rel) → FG.rec {Group = G} f .fst (src r) ≡ FG.rec {Group = G} f .fst (tgt r)) →
-    -- GroupHom ∣ P ∣ G
-  -- ∣P∣-rec {G} f rel = f' , f'isHom
-    -- where
-    -- open Span
-    -- f*hom : GroupHom (P *) G
-    -- f*hom = FG.rec {Group = G} f
-    -- f* : ⟨ P * ⟩ → ⟨ G ⟩
-    -- f* = fst f*hom
-    -- rel* : {u v : ⟨ P * ⟩} → (fst (freeCongruenceCongruence (P *) (str P)) u v) → f* u ≡ f* v
-    -- rel* (fcBase r) = rel r
-    -- rel* fcRefl = refl
-    -- rel* (fcTrans r r') = rel* r ∙ rel* r' 
-    -- rel* (fcSym r) = sym (rel* r)
-    -- rel* (fcProd {u} {u'} {v} {v'} r r') = pres· u v ∙ cong₂ ((str G) .GroupStr._·_) (rel* r) (rel* r') ∙ sym (pres· u' v')
-      -- where
-      -- open IsGroupHom (snd f*hom)
-    -- f' : ⟨ ∣ P ∣ ⟩ → ⟨ G ⟩
-    -- f' = SQ.rec (GroupStr.is-set (str G)) f* (λ _ _ r → rel* r)
-    -- open IsGroupHom
-    -- f'isHom : IsGroupHom (str ∣ P ∣) f' (str G)
-    -- pres· f'isHom = SQ.elimProp2 (λ _ _ → GroupStr.is-set (str G) _ _) (pres· (snd f*hom))
-    -- pres1 f'isHom = pres1 (snd f*hom)
-    -- presinv f'isHom = SQ.elimProp (λ _ → GroupStr.is-set (str G) _ _) (presinv (snd f*hom))
 
   -- Non-dependent elimination from the presented group
   ∣P∣-rec : {G : Group ℓ}
@@ -292,16 +265,6 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
 
   -- Our main theorem: the delooping associated to the presentation coincides
   -- with the delooping as generic Eilenberg-MacLane spaces.
-  --
-  -- The termination checker does not manage to check termination in pathToEM,
-  -- but it should. In the definition of pathToEM, this is precisely the
-  -- recursive call in the case of preservation of multiplication and, in fact,
-  -- termination is not problematic if we directly perform induction instead of
-  -- using FG.elimProp (which we do not want to do here in order not to have to
-  -- handle again the cases handled there which follow from the fact that we
-  -- eliminate in Prop).
-  --
-  {-# TERMINATING #-}
   theorem : Delooping ≃ EM₁ ∣ P ∣
   theorem = isoToEquiv e
     where
@@ -319,7 +282,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       (λ a → refl)
       (λ u v p q → 
          cong f1 (path u ∙ path v)                     ≡⟨ cong-∙ f1 (path u) (path v) ⟩
-         cong f1 (path u) ∙ cong f1 (path v)           ≡⟨ cong₂ _∙_ (pathToEM u) (pathToEM v) ⟩
+         cong f1 (path u) ∙ cong f1 (path v)           ≡⟨ cong₂ _∙_ p q ⟩
          emloop [ u ] ∙ emloop [ v ]                   ≡⟨ sym (emloop-comp ∣ P ∣ [ u ] [ v ]) ⟩
          emloop (GroupStr._·_ (snd ∣ P ∣) [ u ] [ v ]) ≡⟨ refl ⟩
          emloop [ u · v ]                              ∎
@@ -327,7 +290,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       (sym (emloop-1g ∣ P ∣))
       (λ u p → 
          cong f1 (sym (path u)) ≡⟨ refl ⟩
-         sym (cong f1 (path u)) ≡⟨ cong sym (pathToEM u) ⟩
+         sym (cong f1 (path u)) ≡⟨ cong sym p ⟩
          sym (emloop [ u ])     ≡⟨ sym (emloop-sym ∣ P ∣ [ u ]) ⟩
          emloop [ inv u ]       ∎
       )
@@ -361,35 +324,17 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     loopHom = ∣P∣-rec g-gen (λ r → lem (src r) ∙ rel r ∙ sym (lem (tgt r)))
       where
       lem : (u : ⟨ P * ⟩) → g-gen* u ≡ cong inj (path u)
-      lem (η a) = refl
-      lem (u · v) = cong₂ _∙_ (lem u) (lem v) ∙ sym (cong-∙ inj (path u) (path v))
-      lem ε = refl
-      lem (inv u) = cong sym (lem u)
-      lem (FG.assoc u v w i) = {!!}
-        where
-        -- case : FG.rec generator .fst (FG.assoc u v w i) ≡ cong inj (assoc (path u) (path v) (path w) i)
-        -- case : cong (FG.rec {Group = ΩBP} generator .fst) (FG.assoc u v w) ≡ cong (cong inj) (assoc (path u) (path v) (path w))
-        -- case = {!cong (cong inj) (assoc (path u) (path v) (path w))!}
-      lem (idr u i) = lem' i
-        where
-        lem' : PathP (λ i → g-gen* (idr u i) ≡ cong inj (rUnit (path u) i)) (lem u) (lem (u · ε))
-        lem' = toPathP (
-          transport (λ i → g-gen* (idr u i) ≡ cong inj (rUnit (path u) i)) (lem u) ≡⟨ {!!} ⟩
-          sym (cong g-gen* (idr u)) ∙ lem u ∙ cong (cong inj) (rUnit (path u)) ≡⟨ refl ⟩
-          sym (sym (GroupStr.·IdR (str ΩBP) (g-gen* u))) ∙ lem u ∙ {!!} ≡⟨ refl ⟩
-          GroupStr.·IdR (str ΩBP) (g-gen* u) ∙ lem u ∙ cong (cong inj) (rUnit (path u)) ≡⟨ {!!} ⟩
-          {!sym (cong gen* (idr u))!} ≡⟨ {!!} ⟩
-          {! (lem u)!} ∙ sym (cong-∙ inj (path u) refl) ≡⟨ refl ⟩
-          cong₂ _∙_ (lem u) refl ∙ sym (cong-∙ inj (path u) refl) ≡⟨ refl ⟩
-          cong₂ _∙_ (lem u) (lem ε) ∙ sym (cong-∙ inj (path u) (path ε)) ≡⟨ refl ⟩
-          lem (u · ε) ∎)
-      lem (idl u i) = {!!}
-      lem (invr u i) = {!!}
-      lem (invl u i) = {!!}
-      lem (trunc u v p q i j) = {!!}
+      lem = FG.elimProp (λ _ → gpd _ _ _ _)
+        (λ a → refl)
+        (λ u v p q → cong₂ _∙_ p q ∙ sym (cong-∙ inj (path u) (path v)))
+        refl
+        (λ u p → cong sym p)
 
     loop : ⟨ ∣ P ∣ ⟩ → ⟨ ΩBP ⟩
     loop = fst loopHom
+
+    loop· : (u v : ⟨ ∣ P ∣ ⟩) → loop (u ·P v) ≡ loop u ∙ loop v
+    loop· = IsGroupHom.pres· (snd loopHom)
 
     -- We can send EM to the delooping
     g : EM₁ ∣ P ∣ → Delooping
@@ -400,80 +345,45 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       (λ u → loop u)
       (λ u v → toPathP (lem u v))
       where
-      lem : (u v : ⟨ ∣ P ∣ ⟩) → transport (λ i → loop u i ≡ loop ((snd ∣ P ∣ GroupStr.· u) v) i) refl ≡ loop v
-      lem u v = {!!}
-
-    -- -- We can send EM to the delooping
-    -- g : EM₁ ∣ P ∣ → Delooping
-    -- g = EM.elimGroupoid
-      -- ∣ P ∣
-      -- (λ _ → gpd)
-      -- (inj ⋆)
-      -- (λ u → cong inj (path (sec u))) -- this is where we need the section
-      -- (λ u v → toPathP (lem u v))
-      -- where
-      -- -- lem : (u v : fst ∣ P ∣) → transport (λ i → inj (path (sec u) i) ≡ inj (path (sec ((snd ∣ P ∣ GroupStr.· u) v)) i)) (λ _ → inj ⋆) ≡ (λ i → inj (path (sec v) i))
-      -- lem : (u v : fst ∣ P ∣) → subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v )))) refl ≡ cong inj (path (sec v))
-      -- lem u v =
-        -- subst2 _≡_ (cong inj (path (sec u))) (cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))) refl ≡⟨ subst2≡Refl (cong inj (path (sec u))) _ ⟩
-        -- sym (cong inj (path (sec u))) ∙ cong inj (path (sec (GroupStr._·_ (snd ∣ P ∣) u v)))             ≡⟨ cong₂ _∙_ refl (cong (cong inj) (secProd u v)) ⟩
-        -- sym (cong inj (path (sec u))) ∙ cong inj (path (sec u · sec v))                                  ≡⟨ refl ⟩
-        -- sym (cong inj (path (sec u))) ∙ cong inj (path (sec u) ∙ path (sec v))                           ≡⟨ cong₂ _∙_ refl (cong-∙ inj (path (sec u)) (path (sec v))) ⟩
-        -- sym (cong inj (path (sec u))) ∙ cong inj (path (sec u)) ∙ cong inj (path (sec v))                ≡⟨ assoc _ _ _ ⟩
-        -- (sym (cong inj (path (sec u))) ∙ cong inj (path (sec u))) ∙ cong inj (path (sec v))              ≡⟨ cong₂ _∙_ (lCancel _) refl ⟩
-        -- refl ∙ cong inj (path (sec v))                                                                   ≡⟨ sym (lUnit _) ⟩
-        -- cong inj (path (sec v))                                                                          ∎
+      lem : (u v : ⟨ ∣ P ∣ ⟩) → transport (λ i → loop u i ≡ loop (u ·P v) i) refl ≡ loop v
+      lem u v =
+        transport (λ i → loop u i ≡ loop (u ·P v) i) refl ≡⟨ subst2≡ (loop u) (loop (u ·P v)) refl ⟩
+        sym (loop u) ∙ refl ∙ loop (u ·P v)               ≡⟨ cong (λ p → sym (loop u) ∙ p) (sym (lUnit _)) ⟩
+        sym (loop u) ∙ loop (u ·P v)                      ≡⟨ cong (λ p → sym (loop u) ∙ p) (loop· u v) ⟩
+        sym (loop u) ∙ (loop u ∙ loop v)                  ≡⟨ assoc _ _ _ ⟩
+        (sym (loop u) ∙ loop u) ∙ loop v                  ≡⟨ cong (λ p → p ∙ loop v) (lCancel (loop u)) ⟩
+        refl ∙ loop v                                     ≡⟨ sym (lUnit (loop v)) ⟩
+        loop v                                            ∎
 
     fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
     fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x) refl λ x → toPathP (lem x)
       where
       lem' : (x : ⟨ ∣ P ∣ ⟩) → cong f (loop x) ≡ emloop x
-      lem' = SQ.elim
-        {P = λ x → cong f (loop x) ≡ emloop x}
-        (λ _ → isProp→isSet (emsquash _ _ _ _))
-        word
-        (λ _ _ _ → toPathP (emsquash _ _ _ _ _ _))
+      lem' = SQ.elimProp (λ _ → emsquash _ _ _ _) word
         where
         word : (u : ⟨ P * ⟩) → cong f (loop [ u ]) ≡ emloop [ u ]
-        word (η x) = refl
-        word (u · v) =
-          cong f (loop [ u · v ])                   ≡⟨ refl ⟩
-          cong f (loop ([ u ] ·P [ v ]))            ≡⟨ cong (cong f) (IsGroupHom.pres· (snd loopHom) [ u ] [ v ]) ⟩
-          cong f (loop [ u ] ∙ loop [ v ])          ≡⟨ cong-∙ f (loop [ u ]) (loop [ v ]) ⟩
-          cong f (loop [ u ]) ∙ cong f (loop [ v ]) ≡⟨ cong₂ _∙_ (word u) (word v) ⟩
-          emloop [ u ] ∙ emloop [ v ]               ≡⟨ sym (emloop-comp _ [ u ] [ v ]) ⟩
-          emloop ([ u ] ·P [ v ])                   ≡⟨ refl ⟩
-          emloop [ u · v ]                          ∎
-        word ε = sym (emloop-1g ∣ P ∣)
-        word (inv u) =
-          cong f (loop [ inv u ])                 ≡⟨ refl ⟩
-          cong f (loop (invP [ u ]))              ≡⟨ refl ⟩
-          cong f (sym (loop [ u ]))               ≡⟨ refl ⟩
-          sym (cong f (loop [ u ]))               ≡⟨ cong sym (word u) ⟩
-          sym (emloop [ u ])                      ≡⟨ sym (emloop-sym _ [ u ]) ⟩
-          emloop (invP [ u ]) ≡⟨ refl ⟩
-          emloop [ inv u ]                        ∎
-        word (FG.assoc u v w i) = lem'' i
-          where
-          lem'' : PathP (λ i → cong f (loop [ FG.assoc u v w i ]) ≡ emloop [ FG.assoc u v w i ]) (word (u · (v · w))) (word ((u · v) · w))
-          lem'' = toPathP (emsquash _ _ _ _ _ _)
-        word (idr u i) = lem'' i
-          where
-          lem'' : PathP (λ i → cong f (loop [ idr u i ]) ≡ emloop [ idr u i ]) (word u) (word (u · ε))
-          lem'' = toPathP (emsquash _ _ _ _ _ _)
-        word (idl u i) = lem'' i
-          where
-          lem'' : PathP (λ i → cong f (loop [ idl u i ]) ≡ emloop [ idl u i ]) (word u) (word (ε · u))
-          lem'' = toPathP (emsquash _ _ _ _ _ _)
-        word (invr u i) = lem'' i
-          where
-          lem'' : PathP (λ i → cong f (loop [ invr u i ]) ≡ emloop [ invr u i ]) (word (u · inv u)) (word ε)
-          lem'' = toPathP (emsquash _ _ _ _ _ _)
-        word (invl u i) = lem'' i
-          where
-          lem'' : PathP (λ i → cong f (loop [ invl u i ]) ≡ emloop [ invl u i ]) (word (inv u · u)) (word ε)
-          lem'' = toPathP (emsquash _ _ _ _ _ _)
-        word (trunc u v p q i j) = {!!}
+        word = FG.elimProp
+          (λ _ → emsquash _ _ _ _)
+          (λ _ → refl)
+          (λ u v p q → 
+            cong f (loop [ u · v ])                   ≡⟨ refl ⟩
+            cong f (loop ([ u ] ·P [ v ]))            ≡⟨ cong (cong f) (loop· [ u ] [ v ]) ⟩
+            cong f (loop [ u ] ∙ loop [ v ])          ≡⟨ cong-∙ f (loop [ u ]) (loop [ v ]) ⟩
+            cong f (loop [ u ]) ∙ cong f (loop [ v ]) ≡⟨ cong₂ _∙_ p q ⟩
+            emloop [ u ] ∙ emloop [ v ]               ≡⟨ sym (emloop-comp _ [ u ] [ v ]) ⟩
+            emloop ([ u ] ·P [ v ])                   ≡⟨ refl ⟩
+            emloop [ u · v ]                          ∎
+          )
+          (sym (emloop-1g ∣ P ∣))
+          (λ u p → 
+            cong f (loop [ inv u ])                 ≡⟨ refl ⟩
+            cong f (loop (invP [ u ]))              ≡⟨ refl ⟩
+            cong f (sym (loop [ u ]))               ≡⟨ refl ⟩
+            sym (cong f (loop [ u ]))               ≡⟨ cong sym p ⟩
+            sym (emloop [ u ])                      ≡⟨ sym (emloop-sym _ [ u ]) ⟩
+            emloop (invP [ u ]) ≡⟨ refl ⟩
+            emloop [ inv u ]                        ∎
+          )
       lem : (x : ⟨ ∣ P ∣ ⟩) → subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡ refl
       lem x =
         subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡⟨ subst2≡Refl (cong (f ∘ g) (emloop x)) (emloop x) ⟩
@@ -482,18 +392,6 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         sym (cong f (loop x)) ∙ emloop x                     ≡⟨ cong₂ _∙_ (cong sym (lem' x)) refl ⟩
         sym (emloop x) ∙ emloop x                            ≡⟨ lCancel _ ⟩
         refl                                                 ∎
-
-    -- fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
-    -- fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x)
-      -- refl
-      -- (λ x → toPathP (lem x))
-      -- where
-      -- lem : (x : fst ∣ P ∣) → subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡ refl
-      -- lem x =
-        -- subst2 _≡_ (cong f1 (path (sec x))) (emloop x) refl ≡⟨ subst2≡Refl (cong f1 (path (sec x))) (emloop x) ⟩
-        -- sym (cong f1 (path (sec x))) ∙ emloop x             ≡⟨ cong₂ _∙_ (cong sym (pathToEM (sec x) ∙ cong emloop (isSec x))) refl ⟩
-        -- sym (emloop x) ∙ emloop x                           ≡⟨ lCancel _ ⟩
-        -- refl                                                ∎
 
     gf : (x : Delooping) → g (f x) ≡ x
     gf = Delooping-elim (λ x → g (f x) ≡ x) refl gf-gen gf-rel (λ x → isSet→isGroupoid (gpd (g (f x)) x))
