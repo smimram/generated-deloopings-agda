@@ -162,6 +162,10 @@ P * = freeGroupGroup ⟨ P ⟩
 module _ {ℓ : Level} (P : Presentation {ℓ}) where
   open Span (str P)
 
+  1P   = GroupStr.1g (str ∣ P ∣)
+  _·P_ = GroupStr._·_ (str ∣ P ∣)
+  invP = GroupStr.inv (str ∣ P ∣)
+
   -- The type of relations in the presentation
   Rel = total
 
@@ -298,16 +302,8 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   -- eliminate in Prop).
   --
   {-# TERMINATING #-}
-  theorem :
-    -- We have a section
-    (sec : fst ∣ P ∣ → ⟨ P * ⟩) →
-    ((x : fst ∣ P ∣) → [ sec x ] ≡ x) →
-    -- which preserves generators
-    ((a : ⟨ P ⟩) → path (sec [ η a ]) ≡ gen a) →
-    -- and products
-    ((u v : fst ∣ P ∣) → path (sec (GroupStr._·_ (snd ∣ P ∣) u v)) ≡ path (sec u · sec v)) →
-    Delooping ≃ EM₁ ∣ P ∣
-  theorem sec isSec secGen secProd = isoToEquiv e
+  theorem : Delooping ≃ EM₁ ∣ P ∣
+  theorem = isoToEquiv e
     where
 
     -- We cen send the 1-delooping to EM
@@ -357,13 +353,14 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     g-gen : ⟨ P ⟩ → ⟨ ΩBP ⟩
     g-gen a = cong inj (gen a)
 
+    g-gen* : ⟨ P * ⟩ → ⟨ ΩBP ⟩
+    g-gen* = FG.rec {Group = ΩBP} g-gen .fst
+
     -- Loop associated to any element of the reduced delooping
     loopHom : GroupHom (∣ P ∣) ΩBP
     loopHom = ∣P∣-rec g-gen (λ r → lem (src r) ∙ rel r ∙ sym (lem (tgt r)))
       where
-      gen* : ⟨ P * ⟩ → ⟨ ΩBP ⟩
-      gen* = FG.rec {Group = ΩBP} g-gen .fst
-      lem : (u : ⟨ P * ⟩) → gen* u ≡ cong inj (path u)
+      lem : (u : ⟨ P * ⟩) → g-gen* u ≡ cong inj (path u)
       lem (η a) = refl
       lem (u · v) = cong₂ _∙_ (lem u) (lem v) ∙ sym (cong-∙ inj (path u) (path v))
       lem ε = refl
@@ -375,12 +372,12 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         -- case = {!cong (cong inj) (assoc (path u) (path v) (path w))!}
       lem (idr u i) = lem' i
         where
-        lem' : PathP (λ i → gen* (idr u i) ≡ cong inj (rUnit (path u) i)) (lem u) (lem (u · ε))
+        lem' : PathP (λ i → g-gen* (idr u i) ≡ cong inj (rUnit (path u) i)) (lem u) (lem (u · ε))
         lem' = toPathP (
-          transport (λ i → gen* (idr u i) ≡ cong inj (rUnit (path u) i)) (lem u) ≡⟨ {!!} ⟩
-          sym (cong gen* (idr u)) ∙ lem u ∙ cong (cong inj) (rUnit (path u)) ≡⟨ refl ⟩
-          sym (sym (GroupStr.·IdR (str ΩBP) (gen* u))) ∙ lem u ∙ {!!} ≡⟨ refl ⟩
-          GroupStr.·IdR (str ΩBP) (gen* u) ∙ lem u ∙ cong (cong inj) (rUnit (path u)) ≡⟨ {!!} ⟩
+          transport (λ i → g-gen* (idr u i) ≡ cong inj (rUnit (path u) i)) (lem u) ≡⟨ {!!} ⟩
+          sym (cong g-gen* (idr u)) ∙ lem u ∙ cong (cong inj) (rUnit (path u)) ≡⟨ refl ⟩
+          sym (sym (GroupStr.·IdR (str ΩBP) (g-gen* u))) ∙ lem u ∙ {!!} ≡⟨ refl ⟩
+          GroupStr.·IdR (str ΩBP) (g-gen* u) ∙ lem u ∙ cong (cong inj) (rUnit (path u)) ≡⟨ {!!} ⟩
           {!sym (cong gen* (idr u))!} ≡⟨ {!!} ⟩
           {! (lem u)!} ∙ sym (cong-∙ inj (path u) refl) ≡⟨ refl ⟩
           cong₂ _∙_ (lem u) refl ∙ sym (cong-∙ inj (path u) refl) ≡⟨ refl ⟩
@@ -391,16 +388,19 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       lem (invl u i) = {!!}
       lem (trunc u v p q i j) = {!!}
 
+    loop : ⟨ ∣ P ∣ ⟩ → ⟨ ΩBP ⟩
+    loop = fst loopHom
+
     -- We can send EM to the delooping
     g : EM₁ ∣ P ∣ → Delooping
     g = EM.elimGroupoid
       ∣ P ∣
       (λ _ → gpd)
       (inj ⋆)
-      (λ u → fst loopHom u)
+      (λ u → loop u)
       (λ u v → toPathP (lem u v))
       where
-      lem : (u v : ⟨ ∣ P ∣ ⟩) → transport (λ i → fst loopHom u i ≡ fst loopHom ((snd ∣ P ∣ GroupStr.· u) v) i) refl ≡ fst loopHom v
+      lem : (u v : ⟨ ∣ P ∣ ⟩) → transport (λ i → loop u i ≡ loop ((snd ∣ P ∣ GroupStr.· u) v) i) refl ≡ loop v
       lem u v = {!!}
 
     -- -- We can send EM to the delooping
@@ -427,28 +427,42 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     fg : (x : EM₁ ∣ P ∣) → f (g x) ≡ x
     fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x) refl λ x → toPathP (lem x)
       where
-      lem' : (x : ⟨ ∣ P ∣ ⟩) → cong f (fst loopHom x) ≡ emloop x
+      lem' : (x : ⟨ ∣ P ∣ ⟩) → cong f (loop x) ≡ emloop x
       lem' = SQ.elim
-        {P = λ x → cong f (fst loopHom x) ≡ emloop x}
+        {P = λ x → cong f (loop x) ≡ emloop x}
         (λ _ → isProp→isSet (emsquash _ _ _ _))
         word
         (λ _ _ _ → toPathP (emsquash _ _ _ _ _ _))
         where
-        word : (u : ⟨ P * ⟩) → cong f (fst loopHom [ u ]) ≡ emloop [ u ]
+        word : (u : ⟨ P * ⟩) → cong f (loop [ u ]) ≡ emloop [ u ]
         word (η x) = refl
-        word (u · v) = {!!}
-        word ε =
-          cong f (fst loopHom [ ε ]) ≡⟨ {!!} ⟩
-          emloop [ ε ] ∎
-        word (inv u) = {!!}
+        word (u · v) =
+          cong f (loop [ u · v ]) ≡⟨ refl ⟩
+          cong f (loop ([ u ] ·P [ v ])) ≡⟨ cong (cong f) (IsGroupHom.pres· (snd loopHom) {![ u ]!} {!!}) ⟩
+          cong f (loop [ u ]) ∙ cong f (loop [ v ]) ≡⟨ cong₂ _∙_ (word u) (word v) ⟩
+          emloop [ u ] ∙ emloop [ v ] ≡⟨ sym (emloop-comp _ [ u ] [ v ]) ⟩
+          emloop ([ u ] ·P [ v ]) ≡⟨ refl ⟩
+          emloop [ u · v ] ∎
+        word ε = sym (emloop-1g ∣ P ∣)
+        word (inv u) =
+          cong f (loop [ inv u ])                 ≡⟨ refl ⟩
+          cong f (loop (invP [ u ]))              ≡⟨ refl ⟩
+          cong f (sym (loop [ u ]))               ≡⟨ refl ⟩
+          sym (cong f (loop [ u ]))               ≡⟨ cong sym (word u) ⟩
+          sym (emloop [ u ])                      ≡⟨ sym (emloop-sym _ [ u ]) ⟩
+          emloop (invP [ u ]) ≡⟨ refl ⟩
+          emloop [ inv u ]                        ∎
         word (FG.assoc u v w i) = {!!}
-        word (idr u i) = {!!}
+        word (idr u i) = {!lem'' i!}
+          where
+          lem'' : PathP (λ i → cong f (loop [ idr u i ]) ≡ emloop [ idr u i ]) (word u) {!!}
+          lem'' = toPathP (emsquash _ _ _ _ _ _)
         word (idl u i) = {!!}
         word (invr u i) = {!!}
         word (invl u i) = {!!}
         word (trunc u v p q i j) = {!!}
         -- word u =
-          -- cong f (fst loopHom [ u ]) ≡⟨ {!!} ⟩
+          -- cong f (loop [ u ]) ≡⟨ {!!} ⟩
           -- cong f (cong inj {!!}) ≡⟨ {!!} ⟩
           -- emloop [ u ] ∎
       lem : (x : ⟨ ∣ P ∣ ⟩) → subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡ refl
@@ -456,7 +470,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡⟨ subst2≡Refl (cong (f ∘ g) (emloop x)) (emloop x) ⟩
         sym (cong (f ∘ g) (emloop x)) ∙ emloop x ≡⟨ refl ⟩
         sym (cong f (cong g (emloop x))) ∙ emloop x ≡⟨ refl ⟩
-        sym (cong f (fst loopHom x)) ∙ emloop x ≡⟨ {!!} ⟩ -- we need a lemma here
+        sym (cong f (loop x)) ∙ emloop x ≡⟨ {!!} ⟩ -- we need a lemma here
         sym (emloop x) ∙ emloop x ≡⟨ lCancel _ ⟩
         refl ∎
 
@@ -478,7 +492,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
       gf-gen' : (a : ⟨ P ⟩) → cong g (emloop [ η a ]) ≡ cong inj (gen a)
       gf-gen' a =
         cong g (emloop [ η a ]) ≡⟨ refl ⟩
-        fst loopHom [ η a ]     ≡⟨ refl ⟩
+        loop [ η a ]            ≡⟨ refl ⟩
         cong inj (gen a)        ∎
       gf-gen : (a : ⟨ P ⟩) → PathP (λ i → g (f1 (gen a i)) ≡ inj (gen a i)) refl refl
       gf-gen a i j = gf-gen' a j i
