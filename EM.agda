@@ -166,7 +166,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   Rel = total
 
   -- -- Elimination from the presented group
-  -- ∣P∣-rec : {G : Group ℓ}
+  -- ∣P∣-elim : {G : Group ℓ}
     -- (f : ⟨ P ⟩ → ⟨ G ⟩) →
     -- ((r : Rel) → FG.rec {Group = G} f .fst (src r) ≡ FG.rec {Group = G} f .fst (tgt r)) →
     -- GroupHom ∣ P ∣ G
@@ -354,12 +354,42 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     ΩBP : Group ℓ
     ΩBP = Ωgroup (Delooping , inj ⋆) gpd
 
+    g-gen : ⟨ P ⟩ → ⟨ ΩBP ⟩
+    g-gen a = cong inj (gen a)
+
     -- Loop associated to any element of the reduced delooping
     loopHom : GroupHom (∣ P ∣) ΩBP
-    loopHom = ∣P∣-rec (λ a → cong inj (gen a)) (λ r → lem (src r) ∙ rel r ∙ sym (lem (tgt r)))
+    loopHom = ∣P∣-rec g-gen (λ r → lem (src r) ∙ rel r ∙ sym (lem (tgt r)))
       where
-      lem : (u : ⟨ P * ⟩) → FG.rec {Group = ΩBP} (λ a → cong inj (gen a)) .fst u ≡ cong inj (path u)
-      lem u = {!!}
+      gen* : ⟨ P * ⟩ → ⟨ ΩBP ⟩
+      gen* = FG.rec {Group = ΩBP} g-gen .fst
+      lem : (u : ⟨ P * ⟩) → gen* u ≡ cong inj (path u)
+      lem (η a) = refl
+      lem (u · v) = cong₂ _∙_ (lem u) (lem v) ∙ sym (cong-∙ inj (path u) (path v))
+      lem ε = refl
+      lem (inv u) = cong sym (lem u)
+      lem (FG.assoc u v w i) = {!!}
+        where
+        -- case : FG.rec generator .fst (FG.assoc u v w i) ≡ cong inj (assoc (path u) (path v) (path w) i)
+        -- case : cong (FG.rec {Group = ΩBP} generator .fst) (FG.assoc u v w) ≡ cong (cong inj) (assoc (path u) (path v) (path w))
+        -- case = {!cong (cong inj) (assoc (path u) (path v) (path w))!}
+      lem (idr u i) = lem' i
+        where
+        lem' : PathP (λ i → gen* (idr u i) ≡ cong inj (rUnit (path u) i)) (lem u) (lem (u · ε))
+        lem' = toPathP (
+          transport (λ i → gen* (idr u i) ≡ cong inj (rUnit (path u) i)) (lem u) ≡⟨ {!!} ⟩
+          sym (cong gen* (idr u)) ∙ lem u ∙ cong (cong inj) (rUnit (path u)) ≡⟨ refl ⟩
+          sym (sym (GroupStr.·IdR (str ΩBP) (gen* u))) ∙ lem u ∙ {!!} ≡⟨ refl ⟩
+          GroupStr.·IdR (str ΩBP) (gen* u) ∙ lem u ∙ cong (cong inj) (rUnit (path u)) ≡⟨ {!!} ⟩
+          {!sym (cong gen* (idr u))!} ≡⟨ {!!} ⟩
+          {! (lem u)!} ∙ sym (cong-∙ inj (path u) refl) ≡⟨ refl ⟩
+          cong₂ _∙_ (lem u) refl ∙ sym (cong-∙ inj (path u) refl) ≡⟨ refl ⟩
+          cong₂ _∙_ (lem u) (lem ε) ∙ sym (cong-∙ inj (path u) (path ε)) ≡⟨ refl ⟩
+          lem (u · ε) ∎)
+      lem (idl u i) = {!!}
+      lem (invr u i) = {!!}
+      lem (invl u i) = {!!}
+      lem (trunc u v p q i j) = {!!}
 
     -- We can send EM to the delooping
     g : EM₁ ∣ P ∣ → Delooping
@@ -398,7 +428,29 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     fg = EM.elimSet ∣ P ∣ (λ x → emsquash (f (g x)) x) refl λ x → toPathP (lem x)
       where
       lem' : (x : ⟨ ∣ P ∣ ⟩) → cong f (fst loopHom x) ≡ emloop x
-      lem' x = {!∣P∣-elim!}
+      lem' = SQ.elim
+        {P = λ x → cong f (fst loopHom x) ≡ emloop x}
+        (λ _ → isProp→isSet (emsquash _ _ _ _))
+        word
+        (λ _ _ _ → toPathP (emsquash _ _ _ _ _ _))
+        where
+        word : (u : ⟨ P * ⟩) → cong f (fst loopHom [ u ]) ≡ emloop [ u ]
+        word (η x) = refl
+        word (u · v) = {!!}
+        word ε =
+          cong f (fst loopHom [ ε ]) ≡⟨ {!!} ⟩
+          emloop [ ε ] ∎
+        word (inv u) = {!!}
+        word (FG.assoc u v w i) = {!!}
+        word (idr u i) = {!!}
+        word (idl u i) = {!!}
+        word (invr u i) = {!!}
+        word (invl u i) = {!!}
+        word (trunc u v p q i j) = {!!}
+        -- word u =
+          -- cong f (fst loopHom [ u ]) ≡⟨ {!!} ⟩
+          -- cong f (cong inj {!!}) ≡⟨ {!!} ⟩
+          -- emloop [ u ] ∎
       lem : (x : ⟨ ∣ P ∣ ⟩) → subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡ refl
       lem x =
         subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡⟨ subst2≡Refl (cong (f ∘ g) (emloop x)) (emloop x) ⟩
