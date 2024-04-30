@@ -217,22 +217,17 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     -- non-trivial and proved in Wärn's _Path spaces of pushouts_.
     isGroupoid1Delooping : isGroupoid 1Delooping
 
+  -- Group structure on the loop space of the 1-delooping
+  Ω1Delooping : Group ℓ
+  Ω1Delooping = makeGroup {G = ⋆ ≡ ⋆} refl _∙_ sym (isGroupoid1Delooping ⋆ ⋆) assoc (λ p → sym (rUnit p)) (λ p → sym (lUnit p)) rCancel lCancel
+
+  -- Extension of gen to paths
+  gen* : GroupHom (P *) Ω1Delooping
+  gen* = FG.rec gen
+
   -- Path associated to a formal composite
-  -- Morally, we should be able to define it as
-  -- -- path : (u : ⟨ P * ⟩) → ⋆ ≡ ⋆
-  -- -- path = fst (FG.rec gen)
-  -- but we would need the group structure on the loop space of the 1-delooping
   path : (u : ⟨ P * ⟩) → ⋆ ≡ ⋆
-  path (η a) = gen a
-  path (u · v) = path u ∙ path v
-  path ε = refl
-  path (inv u) = sym (path u)
-  path (FG.assoc u v w i) = assoc (path u) (path v) (path w) i
-  path (idr u i) = rUnit (path u) i
-  path (idl u i) = lUnit (path u) i
-  path (invr u i) = rCancel (path u) i
-  path (invl u i) = lCancel (path u) i
-  path (trunc u v p q i j) = isGroupoid1Delooping ⋆ ⋆ (path u) (path v) (cong path p) (cong path q) i j
+  path = fst gen*
 
   -- The delooping of a presentation
   data Delooping : Type ℓ where
@@ -318,7 +313,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     g-gen a = cong inj (gen a)
 
     -- Extension of g to words
-    -- TODO: this is morally path...
+    -- This is morally path in the quotient space
     g-gen* : ⟨ P * ⟩ → ⟨ ΩBP ⟩
     g-gen* = FG.rec {Group = ΩBP} g-gen .fst
 
