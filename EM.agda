@@ -173,7 +173,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   -- Non-dependent elimination from the presented group
   ∣P∣-rec : {G : Group ℓ}
     (f : ⟨ P ⟩ → ⟨ G ⟩) →
-    ((r : Rel) → FG.rec {Group = G} f .fst (src r) ≡ FG.rec {Group = G} f .fst (tgt r)) →
+    ((r : Rel) → let f* = FG.rec {Group = G} f .fst in f* (src r) ≡ f* (tgt r)) →
     GroupHom ∣ P ∣ G
   ∣P∣-rec {G} f rel = f' , f'isHom
     where
@@ -265,9 +265,6 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
 
   -- Our main theorem: the delooping associated to the presentation coincides
   -- with the delooping as generic Eilenberg-MacLane spaces.
-  --
-  -- IMPORTANT NOTE FOR THE REVIEWERS: We managed to get rid of our additional
-  -- hypothesis since the writing of the paper.
   theorem : Delooping ≃ EM₁ ∣ P ∣
   theorem = isoToEquiv e
     where
@@ -316,9 +313,12 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     ΩBP : Group ℓ
     ΩBP = Ωgroup (Delooping , inj ⋆) gpd
 
+    -- Definition of g on generators
     g-gen : ⟨ P ⟩ → ⟨ ΩBP ⟩
     g-gen a = cong inj (gen a)
 
+    -- Extension of g to words
+    -- TODO: this is morally path...
     g-gen* : ⟨ P * ⟩ → ⟨ ΩBP ⟩
     g-gen* = FG.rec {Group = ΩBP} g-gen .fst
 
@@ -333,9 +333,11 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
         refl
         (λ u p → cong sym p)
 
+    -- Loop associated to any element of the presented group
     loop : ⟨ ∣ P ∣ ⟩ → ⟨ ΩBP ⟩
     loop = fst loopHom
 
+    -- The above construction sends products to concatenation
     loop· : (u v : ⟨ ∣ P ∣ ⟩) → loop (u ·P v) ≡ loop u ∙ loop v
     loop· = IsGroupHom.pres· (snd loopHom)
 
@@ -384,7 +386,7 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
             cong f (sym (loop [ u ]))               ≡⟨ refl ⟩
             sym (cong f (loop [ u ]))               ≡⟨ cong sym p ⟩
             sym (emloop [ u ])                      ≡⟨ sym (emloop-sym _ [ u ]) ⟩
-            emloop (invP [ u ]) ≡⟨ refl ⟩
+            emloop (invP [ u ])                     ≡⟨ refl ⟩
             emloop [ inv u ]                        ∎
           )
       lem : (x : ⟨ ∣ P ∣ ⟩) → subst2 _≡_ (cong (f ∘ g) (emloop x)) (emloop x) refl ≡ refl
