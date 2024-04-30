@@ -13,6 +13,7 @@ open import Cubical.Algebra.Semigroup
 open import Cubical.Algebra.Monoid
 open import Cubical.Algebra.Group
 open import Cubical.Algebra.Group.Morphisms
+open import Cubical.Algebra.Group.MorphismProperties
 open import Cubical.Relation.Binary hiding (Rel)
 open import Cubical.HITs.SetQuotients as SQ
 
@@ -130,21 +131,63 @@ module _ (G : Group ℓ) where
     freeCongruenceCongruence : Congruence
     freeCongruenceCongruence = freeCongruence , freeCongruenceIsCongruence
 
-  -- Quotient of a group by a congruence
-  quotient : Congruence → Group ℓ
-  quotient R = (⟨ G ⟩ / fst R) , grp
+  module _ (R : Congruence) where
+
+    -- Quotient of a group by a congruence
+    quotient : Group ℓ
+    quotient = (⟨ G ⟩ / fst R) , grp
+      where
+      open isCongruence (snd R)
+      grp : GroupStr (⟨ G ⟩ / fst R)
+      GroupStr.1g grp = [ 1g ]
+      GroupStr._·_ grp x y = rec2 squash/ (λ x y → [ x · y ]) (λ _ _ _ r → eq/ _ _ (preservesProduct R r (isReflexive R))) (λ _ _ _ r → eq/ _ _ (preservesProduct R (isReflexive R) r)) x y
+      GroupStr.inv grp x = SQ.rec squash/ (λ x → [ inv x ]) (λ _ _ r → eq/ _ _ (preservesInverse R r)) x
+      IsSemigroup.is-set (IsMonoid.isSemigroup (IsGroup.isMonoid (GroupStr.isGroup grp))) = squash/
+      IsSemigroup.·Assoc (IsMonoid.isSemigroup (IsGroup.isMonoid (GroupStr.isGroup grp))) = SQ.elimProp3 (λ _ _ _ → squash/ _ _) λ x y z → cong [_] (·Assoc x y z)
+      IsMonoid.·IdR (IsGroup.isMonoid (GroupStr.isGroup grp)) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·IdR x)
+      IsMonoid.·IdL (IsGroup.isMonoid (GroupStr.isGroup grp)) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·IdL x)
+      IsGroup.·InvR (GroupStr.isGroup grp) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·InvR x)
+      IsGroup.·InvL (GroupStr.isGroup grp) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·InvL x)
+
+    -- -- Quotient group morphism to the congruence
+    -- quotientHom : GroupHom G quotient
+    -- quotientHom = [_] , igh
+      -- where
+      -- open IsGroupHom
+      -- igh : IsGroupHom _ [_] _
+      -- pres· igh x y = refl
+      -- pres1 igh = refl
+      -- presinv igh x = refl
+
+  -- Quotient of map by a relation
+  quotientRec : (R : Graph {ℓ' = ℓ} ⟨ G ⟩) {H : Group ℓ} (f : GroupHom G H) → ((r : total R) → fst f (src R r) ≡ fst f (tgt R r)) → GroupHom (quotient (freeCongruenceCongruence R)) H
+  quotientRec R {H} f rel = f/ , igh
     where
-    open isCongruence (snd R)
-    grp : GroupStr (⟨ G ⟩ / fst R)
-    GroupStr.1g grp = [ 1g ]
-    GroupStr._·_ grp x y = rec2 squash/ (λ x y → [ x · y ]) (λ _ _ _ r → eq/ _ _ (preservesProduct R r (isReflexive R))) (λ _ _ _ r → eq/ _ _ (preservesProduct R (isReflexive R) r)) x y
-    GroupStr.inv grp x = SQ.rec squash/ (λ x → [ inv x ]) (λ _ _ r → eq/ _ _ (preservesInverse R r)) x
-    IsSemigroup.is-set (IsMonoid.isSemigroup (IsGroup.isMonoid (GroupStr.isGroup grp))) = squash/
-    IsSemigroup.·Assoc (IsMonoid.isSemigroup (IsGroup.isMonoid (GroupStr.isGroup grp))) = SQ.elimProp3 (λ _ _ _ → squash/ _ _) λ x y z → cong [_] (·Assoc x y z)
-    IsMonoid.·IdR (IsGroup.isMonoid (GroupStr.isGroup grp)) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·IdR x)
-    IsMonoid.·IdL (IsGroup.isMonoid (GroupStr.isGroup grp)) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·IdL x)
-    IsGroup.·InvR (GroupStr.isGroup grp) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·InvR x)
-    IsGroup.·InvL (GroupStr.isGroup grp) = SQ.elimProp (λ _ → squash/ _ _) λ x → cong [_] (·InvL x)
+    isSetH : isSet ⟨ H ⟩
+    isSetH = snd H .GroupStr.is-set
+    R* = freeCongruenceCongruence R
+    G/R* = quotient R*
+    fR* : {x y : ⟨ G ⟩} (r : fst R* x y) → fst f x ≡ fst f y
+    fR* (fcBase r) = rel r
+    fR* fcRefl = refl
+    fR* (fcTrans r s) = fR* r ∙ fR* s
+    fR* (fcSym r) = sym (fR* r)
+    fR* (fcProd r s) = f .snd .IsGroupHom.pres· _ _ ∙ cong₂ (snd H .GroupStr._·_) (fR* r) (fR* s) ∙ sym (f .snd .IsGroupHom.pres· _ _)
+    f/ : ⟨ quotient R* ⟩ → ⟨ H ⟩
+    f/ x = SQ.rec isSetH (fst f) (λ _ _ → fR*) x
+    open IsGroupHom
+    igh : IsGroupHom (snd G/R*) f/ (snd H)
+    pres· igh x y = SQ.elimProp2
+      {P = λ x y → f/ (snd G/R* .GroupStr._·_ x y) ≡ snd H .GroupStr._·_ (f/ x) (f/ y)}
+      (λ _ _ → isSetH _ _)
+      (snd f .pres·)
+      x y
+    pres1 igh = snd f .pres1
+    presinv igh x = SQ.elimProp
+      {P = λ x → f/ (snd G/R* .GroupStr.inv x) ≡ snd H .GroupStr.inv (f/ x)}
+      (λ x → isSetH _ _)
+      (snd f .presinv)
+      x
 
 open import Cubical.HITs.FreeGroup as FG hiding (assoc)
 
@@ -170,33 +213,33 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
   -- The type of relations in the presentation
   Rel = total
 
-  -- Non-dependent elimination from the presented group
-  ∣P∣-rec : {G : Group ℓ}
-    (f : ⟨ P ⟩ → ⟨ G ⟩) →
-    ((r : Rel) → let f* = FG.rec {Group = G} f .fst in f* (src r) ≡ f* (tgt r)) →
-    GroupHom ∣ P ∣ G
-  ∣P∣-rec {G} f rel = f' , f'isHom
-    where
-    open Span
-    f*hom : GroupHom (P *) G
-    f*hom = FG.rec {Group = G} f
-    f* : ⟨ P * ⟩ → ⟨ G ⟩
-    f* = fst f*hom
-    rel* : {u v : ⟨ P * ⟩} → (fst (freeCongruenceCongruence (P *) (str P)) u v) → f* u ≡ f* v
-    rel* (fcBase r) = rel r
-    rel* fcRefl = refl
-    rel* (fcTrans r r') = rel* r ∙ rel* r' 
-    rel* (fcSym r) = sym (rel* r)
-    rel* (fcProd {u} {u'} {v} {v'} r r') = pres· u v ∙ cong₂ ((str G) .GroupStr._·_) (rel* r) (rel* r') ∙ sym (pres· u' v')
-      where
-      open IsGroupHom (snd f*hom)
-    f' : ⟨ ∣ P ∣ ⟩ → ⟨ G ⟩
-    f' = SQ.rec (GroupStr.is-set (str G)) f* (λ _ _ r → rel* r)
-    open IsGroupHom
-    f'isHom : IsGroupHom (str ∣ P ∣) f' (str G)
-    pres· f'isHom = SQ.elimProp2 (λ _ _ → GroupStr.is-set (str G) _ _) (pres· (snd f*hom))
-    pres1 f'isHom = pres1 (snd f*hom)
-    presinv f'isHom = SQ.elimProp (λ _ → GroupStr.is-set (str G) _ _) (presinv (snd f*hom))
+  -- -- Non-dependent elimination from the presented group
+  -- ∣P∣-rec : {G : Group ℓ}
+    -- (f : ⟨ P ⟩ → ⟨ G ⟩) →
+    -- ((r : Rel) → let f* = FG.rec {Group = G} f .fst in f* (src r) ≡ f* (tgt r)) →
+    -- GroupHom ∣ P ∣ G
+  -- ∣P∣-rec {G} f rel = f' , f'isHom
+    -- where
+    -- open Span
+    -- f*hom : GroupHom (P *) G
+    -- f*hom = FG.rec {Group = G} f
+    -- f* : ⟨ P * ⟩ → ⟨ G ⟩
+    -- f* = fst f*hom
+    -- rel* : {u v : ⟨ P * ⟩} → (fst (freeCongruenceCongruence (P *) (str P)) u v) → f* u ≡ f* v
+    -- rel* (fcBase r) = rel r
+    -- rel* fcRefl = refl
+    -- rel* (fcTrans r r') = rel* r ∙ rel* r' 
+    -- rel* (fcSym r) = sym (rel* r)
+    -- rel* (fcProd {u} {u'} {v} {v'} r r') = pres· u v ∙ cong₂ ((str G) .GroupStr._·_) (rel* r) (rel* r') ∙ sym (pres· u' v')
+      -- where
+      -- open IsGroupHom (snd f*hom)
+    -- f' : ⟨ ∣ P ∣ ⟩ → ⟨ G ⟩
+    -- f' = SQ.rec (GroupStr.is-set (str G)) f* (λ _ _ r → rel* r)
+    -- open IsGroupHom
+    -- f'isHom : IsGroupHom (str ∣ P ∣) f' (str G)
+    -- pres· f'isHom = SQ.elimProp2 (λ _ _ → GroupStr.is-set (str G) _ _) (pres· (snd f*hom))
+    -- pres1 f'isHom = pres1 (snd f*hom)
+    -- presinv f'isHom = SQ.elimProp (λ _ → GroupStr.is-set (str G) _ _) (presinv (snd f*hom))
 
   -- 1-skeleton of the delooping of a presentation
   data 1Delooping : Type ℓ where
@@ -308,25 +351,19 @@ module _ {ℓ : Level} (P : Presentation {ℓ}) where
     ΩBP : Group ℓ
     ΩBP = Ωgroup (Delooping , inj ⋆) gpd
 
-    -- Definition of g on generators
-    g-gen : ⟨ P ⟩ → ⟨ ΩBP ⟩
-    g-gen a = cong inj (gen a)
-
-    -- Extension of g to words
-    -- This is morally path in the quotient space
-    g-gen* : ⟨ P * ⟩ → ⟨ ΩBP ⟩
-    g-gen* = FG.rec {Group = ΩBP} g-gen .fst
+    -- inj as a group morphism
+    injGrp : GroupHom Ω1Delooping ΩBP
+    injGrp = (cong inj) , igh
+      where
+      open IsGroupHom
+      igh : IsGroupHom (snd Ω1Delooping) (cong inj) (snd ΩBP)
+      pres· igh = cong-∙ inj
+      pres1 igh = refl
+      presinv igh p = refl
 
     -- Loop associated to any element of the reduced delooping
     loopHom : GroupHom (∣ P ∣) ΩBP
-    loopHom = ∣P∣-rec g-gen (λ r → lem (src r) ∙ rel r ∙ sym (lem (tgt r)))
-      where
-      lem : (u : ⟨ P * ⟩) → g-gen* u ≡ cong inj (path u)
-      lem = FG.elimProp (λ _ → gpd _ _ _ _)
-        (λ a → refl)
-        (λ u v p q → cong₂ _∙_ p q ∙ sym (cong-∙ inj (path u) (path v)))
-        refl
-        (λ u p → cong sym p)
+    loopHom = quotientRec _ (str P) (compGroupHom gen* injGrp) rel
 
     -- Loop associated to any element of the presented group
     loop : ⟨ ∣ P ∣ ⟩ → ⟨ ΩBP ⟩
