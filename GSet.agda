@@ -9,7 +9,8 @@
 
 {-# OPTIONS --cubical #-}
 
-open import Cubical.Foundations.Everything
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Structure
 open import Cubical.Algebra.Group
 open import Cubical.Reflection.RecordEquiv
 

@@ -4,7 +4,8 @@ module Coeq where
 
 -- The standard library unfortunately does not have coequalisers. Add them.
 
-open import Cubical.Foundations.Everything
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Equiv
 open import Cubical.Data.Sigma
 
 private variable

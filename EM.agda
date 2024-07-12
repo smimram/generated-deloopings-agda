@@ -6,8 +6,14 @@
 -- traditional spaces.
 --
 
-open import Cubical.Foundations.Everything hiding (⋆)
+open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.GroupoidLaws as GL
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Pointed hiding (⋆)
+open import Cubical.Foundations.Function
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Data.Sigma
 open import Cubical.Algebra.Semigroup
 open import Cubical.Algebra.Monoid

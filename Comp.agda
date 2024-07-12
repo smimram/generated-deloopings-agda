@@ -11,10 +11,12 @@
 
 {-# OPTIONS --cubical #-}
 
-open import Cubical.Foundations.Everything
+open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Isomorphism
-open import Cubical.Core.Everything
+open import Cubical.Foundations.Pointed
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.HITs.SetTruncation as ST
 open import Cubical.Homotopy.Loopspace
