@@ -19,6 +19,7 @@ open import Cubical.Data.Unit
 open import Cubical.Data.Sigma
 open import Cubical.HITs.EilenbergMacLane1 as EM
 open import Cubical.HITs.Pushout
+open import Cubical.HITs.PropositionalTruncation as PT
 open import Cubical.Homotopy.EilenbergMacLane.Properties
 
 open import Generators
@@ -232,3 +233,9 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
         refl
         refl
       lem x = toPathP (lem' x)
+
+  Cayley-connected : (x : Cayley) → ∥ vertex (GroupStr.1g (str G)) ≡ x ∥₁
+  Cayley-connected = Cayley-elim
+    (λ x → ∥ vertex (GroupStr.1g (str G)) ≡ x ∥₁)
+    (λ g → ∣ edge (GroupStr.1g (str G)) {!!} ∙ {!!} ∣₁) -- by surjectivity (gen)
+    (λ _ _ → toPathP (isPropPropTrunc _ _))
