@@ -7,10 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Update agda
-      run: |
-        sudo sed -i 's/jammy/lunar/' /etc/apt/sources.list
-        sudo apt-get -y update
     - name: Install packages
       run: sudo apt-get -y install agda
     - name: Download cubical library
