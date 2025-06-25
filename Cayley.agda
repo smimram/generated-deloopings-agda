@@ -234,8 +234,14 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
         refl
       lem x = toPathP (lem' x)
 
+  open import Cubical.HITs.FreeGroup as FG renaming (_·_ to _·*_)
+
+  -- Canonical extension of edge to the free group
+  edge* : (g : ⟨ G ⟩) (u : FreeGroup ⟨ X ⟩) → vertex g ≡ vertex (g · freeGHom {X = X} {G = G} γ .fst u)
+  edge* g u = {!!}
+
   Cayley-connected : (x : Cayley) → ∥ vertex (GroupStr.1g (str G)) ≡ x ∥₁
   Cayley-connected = Cayley-elim
     (λ x → ∥ vertex (GroupStr.1g (str G)) ≡ x ∥₁)
-    (λ g → ∣ edge (GroupStr.1g (str G)) {!!} ∙ {!!} ∣₁) -- by surjectivity (gen)
+    (λ g → PT.rec isPropPropTrunc (λ { (u , p) → ∣ edge* (GroupStr.1g (str G)) u ∙ cong vertex (·IdL _) ∙ cong vertex p ∣₁ }) (gen g))
     (λ _ _ → toPathP (isPropPropTrunc _ _))
