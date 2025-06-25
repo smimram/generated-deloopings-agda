@@ -13,7 +13,7 @@ open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Univalence
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Path
-open import Cubical.Foundations.GroupoidLaws
+open import Cubical.Foundations.GroupoidLaws as GL
 open import Cubical.Algebra.Group
 open import Cubical.Data.Unit
 open import Cubical.Data.Sigma
@@ -239,7 +239,25 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
 
   -- Canonical extension of edge to the free group
   edge* : (g : ⟨ G ⟩) (u : FreeGroup ⟨ X ⟩) → vertex g ≡ vertex (g · freeGHom {X = X} {G = G} γ .fst u)
-  edge* g u = {!!}
+  edge* g (η x) = edge g x
+  edge* g (u ·* v) = edge* g u ∙ edge* _ v ∙ cong vertex (sym (IsGroup.·Assoc isGroup _ (freeGHom {X = X} γ .fst u) (freeGHom {X = X} γ .fst v)) )
+  edge* g ε = cong vertex (sym (IsGroup.·IdR (GroupStr.isGroup (G .snd)) g))
+  edge* g (FG.inv u) = {!!}
+  edge* g (FG.assoc u v w i) = {!!}
+  edge* g (idr u i) = lem i
+    where
+    lem' : edge* g u ∙ (λ i → vertex (g · freeGHom {X = X} {G = G} γ .fst (idr u i))) ≡ refl ∙ edge* g u ∙ cong vertex (sym (IsGroup.·IdR (GroupStr.isGroup (G .snd)) (g · freeGHom {X = X} γ .fst u))) ∙ cong vertex (sym (IsGroup.·Assoc isGroup _ (freeGHom {X = X} γ .fst u) 1g))
+    lem' = ?
+    lem : Square
+      (edge* g u)
+      (edge* g u ∙ cong vertex (sym (IsGroup.·IdR (GroupStr.isGroup (G .snd)) (g · freeGHom {X = X} γ .fst u))) ∙ cong vertex (sym (IsGroup.·Assoc isGroup _ (freeGHom {X = X} γ .fst u) 1g)))
+      (λ _ → vertex g)
+      (λ i → vertex (g · freeGHom {X = X} {G = G} γ .fst (idr u i)))
+    lem = {!!}
+  edge* g (idl u i) = {!!}
+  edge* g (invr u i) = {!!}
+  edge* g (invl u i) = {!!}
+  edge* g (trunc u v x y i j) = {!!}
 
   Cayley-connected : (x : Cayley) → ∥ vertex (GroupStr.1g (str G)) ≡ x ∥₁
   Cayley-connected = Cayley-elim
