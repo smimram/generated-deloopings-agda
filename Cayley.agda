@@ -234,6 +234,7 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
         refl
       lem x = toPathP (lem' x)
 
+  open import Cubical.Algebra.Group.Morphisms
   open import Cubical.HITs.FreeGroup as FG renaming (_·_ to _·*_)
 
   -- Canonical extension of edge to the free group
