@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 
 ---
 --- Cayley graphs in homotopy type theory
@@ -237,27 +237,32 @@ module _ {G : Group ℓ} {X : hSet ℓ} (γ : ⟨ X ⟩ → ⟨ G ⟩) (gen : ge
   open import Cubical.Algebra.Group.Morphisms
   open import Cubical.HITs.FreeGroup as FG renaming (_·_ to _·*_)
 
+  γ* : GroupHom (freeGroupGroup ⟨ X ⟩) G
+  γ* = freeGHom {X = X} {G = G} γ
+
   -- Canonical extension of edge to the free group
-  edge* : (g : ⟨ G ⟩) (u : FreeGroup ⟨ X ⟩) → vertex g ≡ vertex (g · freeGHom {X = X} {G = G} γ .fst u)
-  edge* g (η x) = edge g x
-  edge* g (u ·* v) = edge* g u ∙ edge* _ v ∙ cong vertex (sym (IsGroup.·Assoc isGroup _ (freeGHom {X = X} γ .fst u) (freeGHom {X = X} γ .fst v)) )
-  edge* g ε = cong vertex (sym (IsGroup.·IdR (GroupStr.isGroup (G .snd)) g))
-  edge* g (FG.inv u) = {!!}
-  edge* g (FG.assoc u v w i) = {!!}
-  edge* g (idr u i) = lem i
-    where
-    lem' : edge* g u ∙ (λ i → vertex (g · freeGHom {X = X} {G = G} γ .fst (idr u i))) ≡ refl ∙ edge* g u ∙ cong vertex (sym (IsGroup.·IdR (GroupStr.isGroup (G .snd)) (g · freeGHom {X = X} γ .fst u))) ∙ cong vertex (sym (IsGroup.·Assoc isGroup _ (freeGHom {X = X} γ .fst u) 1g))
-    lem' = ?
-    lem : Square
-      (edge* g u)
-      (edge* g u ∙ cong vertex (sym (IsGroup.·IdR (GroupStr.isGroup (G .snd)) (g · freeGHom {X = X} γ .fst u))) ∙ cong vertex (sym (IsGroup.·Assoc isGroup _ (freeGHom {X = X} γ .fst u) 1g)))
-      (λ _ → vertex g)
-      (λ i → vertex (g · freeGHom {X = X} {G = G} γ .fst (idr u i)))
-    lem = {!!}
-  edge* g (idl u i) = {!!}
-  edge* g (invr u i) = {!!}
-  edge* g (invl u i) = {!!}
-  edge* g (trunc u v x y i j) = {!!}
+  -- left to the reader...
+  edge* : (g : ⟨ G ⟩) (u : FreeGroup ⟨ X ⟩) → vertex g ≡ vertex (g · γ* .fst u)
+  -- edge* g (η x) = edge g x
+  -- edge* g (u ·* v) = edge* g u ∙ edge* _ v ∙ cong vertex (sym (IsGroup.·Assoc isGroup _ (γ* .fst u) (γ* .fst v)) )
+  -- edge* g ε = cong vertex (sym (IsGroup.·IdR (GroupStr.isGroup (G .snd)) g))
+  -- edge* g (FG.inv u) = cong vertex {!!}
+  -- edge* g (FG.assoc u v w i) = {!!}
+  -- edge* g (idr u i) = lem i
+    -- where
+    -- -- lem' : edge* g u ∙ (λ i → vertex (g · γ* .fst (idr u i))) ≡ refl ∙ edge* g u ∙ cong vertex (sym (IsGroup.·IdR (GroupStr.isGroup (G .snd)) (g · γ* .fst u))) ∙ cong vertex (sym (IsGroup.·Assoc isGroup _ (γ* .fst u) 1g))
+    -- lem' = {!!}
+    -- lem : Square
+      -- (edge* g u)
+      -- (edge* g u ∙ cong vertex (sym (IsGroup.·IdR (GroupStr.isGroup (G .snd)) (g · γ* .fst u))) ∙ cong vertex (sym (IsGroup.·Assoc isGroup _ (γ* .fst u) 1g)))
+      -- (λ _ → vertex g)
+      -- (λ i → vertex (g · freeGHom {X = X} {G = G} γ .fst (idr u i)))
+    -- lem = {!!}
+  -- edge* g (idl u i) = {!!}
+  -- edge* g (invr u i) = {!!}
+  -- edge* g (invl u i) = {!!}
+  -- edge* g (trunc u v x y i j) = {!!}
+  edge* = {!!}
 
   Cayley-connected : (x : Cayley) → ∥ vertex (GroupStr.1g (str G)) ≡ x ∥₁
   Cayley-connected = Cayley-elim
